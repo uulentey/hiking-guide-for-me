@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Маршрутын дэлгэрэнгүй — UB Hiking</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="mark">
+        <svg viewBox="0 0 24 24"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </span>
+      UB Hiking
+    </a>
+    <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
+    <nav class="primary-nav">
+      <a href="index.html">Нүүр</a>
+      <a href="explore.html">Explore</a>
+      <a href="map.html">Газрын зураг</a>
+      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Төлөвлөх</a>
+      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
+    </nav>
+  </div>
+</header>
+
+<div class="detail-hero">
+  <div class="wrap">
+    <div>
+      <div class="hero-eyebrow">ROUTE DETAIL</div>
+      <h1 id="route-name">—</h1>
+      <p id="route-desc" style="color:#111211;max-width:56ch;"></p>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="stat-row" id="stat-row"></div>
+
+    <div id="map" style="height: 400px; margin: 20px 0;"></div>
+
+    <button class="btn btn-primary save-btn" id="save-btn">Хадгалах</button>
+
+    <div class="safety-note" style="margin-top:28px;">
+      <span>⚠</span>
+      <div><b>Анхаарах зүйлс:</b> <span id="safety-text">Тухайн маршрутын онцлогоос хамаарсан анхааруулга энд харагдана (эгц хэсэг, чулуурхаг зам, сигналгүй бүс гэх мэт).</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>UB Hiking Guide — MVP</div>
+    <div>route database + map + community + planning</div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""></script>
+<script src="main.js"></script>
+<script>
+// Pull route data from main.js (ROUTES is global)
+const params = new URLSearchParams(window.location.search);
+const route = ROUTES.find(r => r.id === params.get('id')) || ROUTES[0];
+
+// Set basic info
+document.getElementById('route-name').textContent = route.name;
+document.getElementById('route-desc').textContent = route.desc;
+document.getElementById('stat-row').innerHTML = `
+  <div><b>${route.distanceKm} км</b><span>Зай</span></div>
+  <div><b>${route.elevationM} м</b><span>Өгсөлт</span></div>
+  <div><b>${route.timeHr}</b><span>Цаг</span></div>
+  <div><b>${route.difficulty}</b><span>Түвшин</span></div>
+  <div><b>${route.season}</b><span>Улирал</span></div>
+`;
+
+// Safety text based on difficulty (simplified)
+let safetyText = '';
+switch (route.difficulty) {
+  case 'Хялбар':
+    safetyText = 'Зам өргөн, дундаж ши.visualizaаж байгаа.';
+    break;
+  case 'Дунд':
+    safetyText = 'Хэтрэл чандман зам, том идэртгэлтэй.';
+    break;
+  case 'Хэцүү':
+    safetyText = 'Д архи, дээдэн цэгүүдтэй, алдаамжтой.';
+    break;
+  default:
+    safetyText = 'Маршрутын тодорхойлолт байхгүй.';
+}
+document.getElementById('safety-text').textContent = safetyText;
+
+// Save button (demo)
+document.getElementById('save-btn').addEventListener('click', () => {
+  alert('Хадгалагдлаа (демо — Firebase холбогдоогүй тул reload хийвэл алга болно).');
+});
+
+// Initialize map if track data exists
+if (route.track && route.track.length >= 2) {
+  const map = L.map('map').setView(route.track[0], 13);
+
+  // Add OSM tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // Add polyline for the track
+  const polyline = L.polyline(route.track, {color: 'green'}).addTo(map);
+
+  // Optional: zoom to fit the polyline
+  map.fitBounds(polyline.getBounds());
+} else {
+  document.getElementById('map').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
+}
+</script>
+</body>
+</html>

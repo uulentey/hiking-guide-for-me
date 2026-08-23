@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UB Hiking — Улаанбаатараас хаашаа алхах вэ?</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="mark">
+        <svg viewBox="0 0 24 24"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </span>
+      UB Hiking
+    </a>
+    <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
+    <nav class="primary-nav">
+      <a href="index.html" class="active">Нүүр</a>
+      <a href="explore.html">Explore</a>
+      <a href="map.html">Газрын зураг</a>
+      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Төлөвлөх</a>
+      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-contour" aria-hidden="true">
+    <svg viewBox="0 0 1200 400" preserveAspectRatio="none">
+      <path d="M0,300 C100,260 180,320 280,280 C380,240 420,180 520,200 C620,220 660,140 760,150 C860,160 900,240 1000,220 C1100,200 1150,260 1200,240"/>
+      <path d="M0,340 C110,300 190,350 290,320 C390,290 430,230 530,250 C630,270 670,200 770,210 C870,220 910,280 1010,260 C1110,240 1150,300 1200,280"/>
+      <path d="M0,260 C90,220 170,280 270,240 C370,200 410,150 510,170 C610,190 650,120 750,130 C850,140 890,210 990,190 C1090,170 1140,220 1200,200"/>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="hero-eyebrow">UB HIKING GUIDE</div>
+    <h1>Улаанбаатараас хаашаа алхахаа мэдэхгүй үедээ нээдэг сайт</h1>
+    <p class="lede">Ойр орчмын уул, маршрут, spot-уудыг нэг дороос хайж, зай/өндөр/хугацаа харж, аюулгүй байдлын мэдээлэлтэй танилцаад шууд явж болно.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="explore.html">Маршрут хайх</a>
+      <a class="btn btn-ghost" href="map.html">Газрын зураг үзэх</a>
+    </div>
+  </div>
+</section>
+
+<div class="journey">
+  <div class="wrap">
+    <ol>
+      <li>Хаашаа явах вэ?</li>
+      <li>Ямар маршрут вэ?</li>
+      <li>Хэр хэцүү вэ?</li>
+      <li>Цаг агаар ямар вэ?</li>
+      <li>Юу авч явах вэ?</li>
+      <li>Яаж очих вэ?</li>
+      <li>Замдаа юуг анхаарах вэ?</li>
+    </ol>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Санал болгож буй маршрутууд</h2>
+      <div class="sub"><a href="explore.html">Бүгдийг үзэх →</a></div>
+    </div>
+    <div class="route-grid" id="route-grid"></div>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="safety-note">
+      <span>⚠</span>
+      <div><b>Аюулгүй байдал:</b> Энэ платформ мэдээллийн/guide үйлчилгээ бөгөөд аюулгүй байдлыг баталгаажуулсан гэж үзэхгүй. Маршрут бүрийн дэлгэрэнгүй хуудаснаас чулуурхаг эгц хэсэг, гол гарц, сигналгүй бүс зэрэг анхааруулгыг үзнэ үү.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>UB Hiking Guide — MVP</div>
+    <div>route database + map + community + planning</div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+<script>renderRoutes(ROUTES, '#route-grid');</script>
+</body>
+</html>
