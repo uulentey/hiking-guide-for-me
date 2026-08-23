@@ -15,14 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // This is the actual bottleneck flagged earlier: nothing here is real GPS/elevation data yet.
 const ROUTES = [
   {
-    id: 'bogd-khan-tsetsee-gun',
-    name: 'Цэцээ гүн — Богд хайрхан',
-    difficulty: 'Дунд',
+    id: 'bogd-khan-yagaan-sandal',
+    name: 'Ягаан сандал',
+    image: 'emoSandal.jpg',
+    difficulty: 'Хөнгөн - Дунд',
     distanceKm: 12,
     elevationM: 480,
     timeHr: '4–5',
     season: '5-р сар – 10-р сар',
-    desc: 'Богд хайрханы хамгийн өндөр цэг рүү өгсдөг сонгодог маршрут, ойн бүс дундуур.',
+    desc: 'Богд уулын энгэрт байрлах, уулын замаар богино хугацаанд алхаж хүрэх боломжтой, зураг авах болон амарч суухад тохиромжтой цэг.',
     track: [
       [47.85, 106.75],
       [47.86, 106.76],
@@ -33,8 +34,9 @@ const ROUTES = [
     ]
   },
   {
-    id: 'zaisan-nukht',
-    name: 'Зайсан — Нухт чиглэл',
+    id: 'bogd-khan-dugui-tsagaan',
+    name: 'Дугуй цагаан',
+    image: 'duguiTsagaan.jpg',
     difficulty: 'Хялбар',
     distanceKm: 7,
     elevationM: 180,
@@ -51,6 +53,7 @@ const ROUTES = [
   {
     id: 'terelj-turtle-rock',
     name: 'Тэрэлж — Мэлхий хад',
+    image: 'terelj.jpg',
     difficulty: 'Хялбар',
     distanceKm: 5,
     elevationM: 90,
@@ -65,13 +68,14 @@ const ROUTES = [
   },
   {
     id: 'bogd-khan-summit',
-    name: 'Богд хайрхан дунд',
+    name: 'Цэцээ гүн — Богд хайрхан дээд цэг',
+    image: 'tsetseeGun.jpg',
     difficulty: 'Хэцүү',
     distanceKm: 15,
     elevationM: 900,
     timeHr: '6–8',
     season: '6-р сар – 9-р сар',
-    desc: 'Богд хайрханы дунд цэцэрлэг, нутаг дуусаанаас хамгийн өндөр.',
+    desc: 'Богд хайрханы хамгийн өндөр цуг.',
     track: [
       [47.80, 106.70],
       [47.82, 106.72],
@@ -81,14 +85,15 @@ const ROUTES = [
     ]
   },
   {
-    id: 'gunji-loop',
-    name: 'Гүнжи удамт',
+    id: 'tenger-rock',
+    name: 'тэнгэр хад',
+    image: 'tengerHad.jpg',
     difficulty: 'Дунд',
     distanceKm: 8,
     elevationM: 300,
     timeHr: '3–4',
     season: 'Жилийн турш',
-    desc: 'Гүнжи уул рүү удамт зам, дунд цэцэрлэг, шигшээ боломжтой.',
+    desc: 'Хотын төвөөс холдохгүйгээр уулын зам, ой мод, хад асгыг мэдрэх Богдхан уулын хамгийн хүртээмжтэй маршрутуудын нэг.',
     track: [
       [47.92, 106.92],
       [47.93, 106.93],
@@ -100,7 +105,9 @@ const ROUTES = [
 function routeCardHTML(r) {
   return `
     <a class="route-card" href="route-detail.html?id=${r.id}">
-      <div class="route-thumb"><span class="diff">${r.difficulty}</span></div>
+      <div class="route-thumb" style="background-image:url('assets/${r.image}')">
+        <span class="diff">${r.difficulty}</span>
+      </div>
       <div class="route-body">
         <h3>${r.name}</h3>
         <p>${r.desc}</p>
