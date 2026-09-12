@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Маршрутын дэлгэрэнгүй — UB Hiking</title>
+  <title>Маршрутын дэлгэрэнгүй — Live2Hike</title>
   <link rel="stylesheet" href="style.css">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -25,7 +25,6 @@
       <a href="index.html">Нүүр</a>
       <a href="explore.html">Explore</a>
       <a href="map.html" class="active">Газрын зураг</a>
-      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Төлөвлөх</a>
       <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
     </nav>
   </div>
@@ -34,7 +33,7 @@
 <div class="detail-hero">
   <div class="wrap">
     <div>
-      <div class="hero-eyebrow>ROUTE MAP</div>
+      <div class="hero-eyebrow">ROUTE MAP</div>
       <h1 id="route-name">Маршрут сонгоно уу</h1>
       <p id="route-desc" style="color:#121312;max-width:56ch;"></p>
     </div>
@@ -45,9 +44,17 @@
   <div class="wrap">
     <div class="stat-row" id="stat-row"></div>
 
-    <div id="map" style="height: 60vh; min-height: 250px; max-height: 500px; margin: 20px 0; border-radius: var(--radius); border: 1px solid var(--line);"></div>
+    <div class="map-toolbar">
+      <label for="map-layer-select">Free map:</label>
+      <select id="map-layer-select">
+        <option value="osm">OpenStreetMap</option>
+        <option value="carto-light">Carto Light</option>
+        <option value="carto-dark">Carto Dark</option>
+        <option value="topo">OpenTopoMap</option>
+      </select>
+    </div>
 
-    <button class="btn btn-primary save-btn" id="save-btn">Хадгалах</button>
+    <div id="map" style="height: 60vh; min-height: 250px; max-height: 500px; margin: 20px 0; border-radius: var(--radius); border: 1px solid var(--line);"></div>
 
     <div class="safety-note" style="margin-top:28px;">
       <span>⚠</span>
@@ -71,19 +78,58 @@
 // Wait for ROUTES to be loaded from main.js
 let map = null;
 let currentRoute = null;
+let baseLayers = {};
 
-// Initialize map with a default view (Ulaanbaatar)
 function initMap() {
-  if (map) return; // already initialized
-  map = L.map('map').setView([47.8864, 106.9057], 12); // Ulaanbaatar coords
+  if (map) return;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  map = L.map('map').setView([47.8864, 106.9057], 12);
+
+  baseLayers = {
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }),
+    'carto-light': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 20
+    }),
+    'carto-dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 20
+    }),
+    topo: L.tileLayer('https://a.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://viewfinderpanoramas.org">SRTM</a> | map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+      maxZoom: 18
+    })
+  };
+
+  const defaultLayer = baseLayers.osm;
+  defaultLayer.addTo(map);
+
+  const layerSelect = document.getElementById('map-layer-select');
+  layerSelect.addEventListener('change', (event) => {
+    const selected = event.target.value;
+    Object.entries(baseLayers).forEach(([key, layer]) => {
+      if (key === selected) {
+        if (!map.hasLayer(layer)) layer.addTo(map);
+      } else if (map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    });
+  });
 }
 
-// Update UI when route changes
 function updateRouteUI(route) {
+  if (!route) {
+    document.getElementById('route-name').textContent = 'Маршрут олдсонгүй';
+    document.getElementById('route-desc').textContent = 'Маршрутын мэдээлэл байхгүй байна.';
+    document.getElementById('stat-row').innerHTML = '';
+    document.getElementById('safety-text').textContent = 'Маршрут сонгоно уу.';
+    map.setView([47.8864, 106.9057], 12);
+    return;
+  }
+
   document.getElementById('route-name').textContent = route.name;
   document.getElementById('route-desc').textContent = route.desc;
   document.getElementById('stat-row').innerHTML = `
@@ -94,7 +140,6 @@ function updateRouteUI(route) {
     <div><b>${route.season}</b><span>Улирал</span></div>
   `;
 
-  // Safety text based on difficulty
   let safetyText = '';
   switch (route.difficulty) {
     case 'Хялбар':
@@ -111,18 +156,14 @@ function updateRouteUI(route) {
   }
   document.getElementById('safety-text').textContent = safetyText;
 
-  // Update map
   if (route.track && route.track.length >= 2) {
-    // Remove existing polyline if any
     if (window.currentPolyline) {
       map.removeLayer(window.currentPolyline);
     }
-    const polyline = L.polyline(route.track, {color: 'green', weight: 5}).addTo(map);
+    const polyline = L.polyline(route.track, { color: 'green', weight: 5 }).addTo(map);
     window.currentPolyline = polyline;
-    // Zoom to fit the polyline
     map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
   } else {
-    // Clear map and show placeholder
     if (window.currentPolyline) {
       map.removeLayer(window.currentPolyline);
       window.currentPolyline = null;
@@ -130,56 +171,52 @@ function updateRouteUI(route) {
     map.setView([47.8864, 106.9057], 12);
     document.getElementById('map').innerHTML =
       '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
-    // If we set innerHTML, we lose the Leaflet map; better to just not add polyline and keep map.
-    // So we'll just ensure map exists and show a message via an overlay.
-    // For simplicity, we'll just not add polyline and maybe show a tooltip.
   }
 }
 
-// Initial load: show first route or from URL param
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
 
+  const routes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
+  if (!routes.length) {
+    document.getElementById('route-name').textContent = 'Маршрут боломжгүй';
+    document.getElementById('route-desc').textContent = 'Маршрутын мэдээлэл ачаалагдаагүй байна.';
+    document.getElementById('safety-text').textContent = 'Маршрут сонгоно уу.';
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const routeId = params.get('id');
-  if (routeId && window.ROUTES) {
-    currentRoute = window.ROUTES.find(r => r.id === routeId);
-  } else {
-    currentRoute = window.ROUTES[0];
-  }
+  currentRoute = routeId ? routes.find(r => r.id === routeId) || routes[0] : routes[0];
   if (currentRoute) {
     updateRouteUI(currentRoute);
   }
 
-  // Optional: add a route selector UI (simple dropdown)
   const selector = document.createElement('select');
   selector.id = 'route-selector';
   selector.style = 'margin: 10px auto; display: block; padding: 8px; font-size: 1rem;';
-  window.ROUTES.forEach(r => {
+  routes.forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.id;
     opt.textContent = r.name;
-    if (r.id === currentRoute.id) opt.selected = true;
+    if (currentRoute && r.id === currentRoute.id) opt.selected = true;
     selector.appendChild(opt);
   });
-  // Insert selector after hero
-  document.querySelector('.detail-hero .wrap').appendChild(selector);
+
+  const heroWrap = document.querySelector('.detail-hero .wrap');
+  if (heroWrap && !document.getElementById('route-selector')) {
+    heroWrap.appendChild(selector);
+  }
 
   selector.addEventListener('change', (e) => {
     const selectedId = e.target.value;
-    const route = window.ROUTES.find(r => r.id === selectedId);
+    const route = routes.find(r => r.id === selectedId);
     if (route) {
       currentRoute = route;
       updateRouteUI(route);
-      // Update URL without reloading
       window.history.replaceState(null, '', `?id=${route.id}`);
     }
   });
-});
-
-// Save button (demo)
-document.getElementById('save-btn').addEventListener('click', () => {
-  alert('Хадгалагдлаа (демо — Firebase холбогдоогүй тул reload хийвэл алга болно).');
 });
 </script>
 </body>

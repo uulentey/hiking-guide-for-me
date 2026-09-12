@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Маршрутын дэлгэрэнгүй — UB Hiking</title>
+  <title>live2Hike</title>
   <link rel="stylesheet" href="style.css">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -18,47 +18,95 @@
       <span class="mark">
         <svg viewBox="0 0 24 24"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </span>
-      UB Hiking
+      Live2Hike
     </a>
     <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
     <nav class="primary-nav">
       <a href="index.html">Нүүр</a>
-      <a href="explore.html">Explore</a>
+      <a href="explore.html">Маршрутууд</a>
       <a href="map.html">Газрын зураг</a>
-      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Төлөвлөх</a>
       <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
     </nav>
   </div>
 </header>
 
 <div class="detail-hero">
-  <div class="wrap">
-    <div>
-      <div class="hero-eyebrow">ROUTE DETAIL</div>
+  <div class="wrap detail-hero-inner">
+    <div class="detail-copy">
+      <span class="hero-eyebrow">Route detail</span>
       <h1 id="route-name">—</h1>
-      <p id="route-desc" style="color:#111211;max-width:56ch;"></p>
+      <p id="route-desc"></p>
+    </div>
+    <div class="detail-badge">
+      <span>Best for</span>
+      <strong id="route-badge">Hiking</strong>
     </div>
   </div>
 </div>
 
-<section>
-  <div class="wrap">
-    <div class="stat-row" id="stat-row"></div>
+<section class="detail-section">
+  <div class="wrap detail-shell">
+    <div class="detail-main">
+      <div class="detail-card detail-story">
+        <div class="card-kicker">Замийн товч</div>
+        <h2> яагаад энэ жим гэж?</h2>
+        <p id="route-story"></p>
+      </div>
 
-    <div id="map" style="height: 400px; margin: 20px 0;"></div>
+      <div class="detail-card audience-card">
+        <div class="card-kicker">Хэнд ?</div>
+        <h2>Хэнд энэ жим тохирох вэ ?</h2>
+        <ul id="route-audience" class="audience-list"></ul>
+      </div>
 
-    <button class="btn btn-primary save-btn" id="save-btn">Хадгалах</button>
+      <div class="detail-card">
+        <div class="card-kicker">жимын тухай</div>
+        <div class="stat-row" id="stat-row"></div>
+        <ul id="route-highlights" class="route-highlights"></ul>
+      </div>
 
-    <div class="safety-note" style="margin-top:28px;">
-      <span>⚠</span>
-      <div><b>Анхаарах зүйлс:</b> <span id="safety-text">Тухайн маршрутын онцлогоос хамаарсан анхааруулга энд харагдана (эгц хэсэг, чулуурхаг зам, сигналгүй бүс гэх мэт).</span></div>
+      <div class="map-card">
+        <div id="map"></div>
+      </div>
+
+      <div class="map-link-wrap">
+        <a id="google-maps-link" class="maps-link" href="#" target="_blank" rel="noopener noreferrer">Google Maps дээр харах</a>
+      </div>
+
+      <div class="safety-note">
+        <span>⚠</span>
+        <div><b>Анхаарах зүйлс:</b> <span id="safety-text">Ил гал гаргахгүй байх, хог хаяхгүй байх, хортон шавьж устгалын хугацааг шалгах.</span></div>
+      </div>
     </div>
+
+    <aside class="detail-side">
+      <div class="detail-card quick-panel">
+        <div class="card-kicker">Факт</div>
+        <ul class="mini-facts">
+          <li><span>Зай</span><strong id="fact-distance">—</strong></li>
+          <li><span>Өгсүүр</span><strong id="fact-elevation">—</strong></li>
+          <li><span>Хугацаа</span><strong id="fact-time">—</strong></li>
+          <li><span>Улирал </span><strong id="fact-season">—</strong></li>
+        </ul>
+      </div>
+
+      <div class="detail-card quick-panel">
+        <div class="card-kicker">Явахааса өмнө</div>
+        <div class="check-list">
+          <span> 1–2Л ус</span>
+          <span> Тохиромжтой гутал</span>
+          <span>Тохиромжтой хувцас</span>
+          <span> Гар утас</span>
+          <span> Өөрт хэрэгтэй эм </span>
+        </div>
+      </div>
+    </aside>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <div>UB Hiking Guide — MVP</div>
+    <div>Live2Hike</div>
     <div>route database + map + community + planning</div>
   </div>
 </footer>
@@ -68,61 +116,133 @@
   crossorigin=""></script>
 <script src="main.js"></script>
 <script>
-// Pull route data from main.js (ROUTES is global)
-const params = new URLSearchParams(window.location.search);
-const route = ROUTES.find(r => r.id === params.get('id')) || ROUTES[0];
+  function renderRouteDetails() {
+    const allRoutes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
+    const params = new URLSearchParams(window.location.search);
+    const routeId = params.get('id');
+    const route = routeId ? allRoutes.find((item) => item.id === routeId) || allRoutes[0] || null : allRoutes[0] || null;
 
-// Set basic info
-document.getElementById('route-name').textContent = route.name;
-document.getElementById('route-desc').textContent = route.desc;
-document.getElementById('stat-row').innerHTML = `
-  <div><b>${route.distanceKm} км</b><span>Зай</span></div>
-  <div><b>${route.elevationM} м</b><span>Өгсөлт</span></div>
-  <div><b>${route.timeHr}</b><span>Цаг</span></div>
-  <div><b>${route.difficulty}</b><span>Түвшин</span></div>
-  <div><b>${route.season}</b><span>Улирал</span></div>
-`;
+    if (!route) {
+      document.getElementById('route-name').textContent = 'Маршрут олдсонгүй';
+      document.getElementById('route-desc').textContent = 'Энэ руу хандаж буй маршрутын мэдээлэл байхгүй байна.';
+      document.getElementById('route-story').textContent = 'Маршрутын мэдээлэл ачаалагдаагүй байна.';
+      document.getElementById('route-badge').textContent = 'Unknown';
+      document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын мэдээлэл байхгүй</div>';
+      return;
+    }
 
-// Safety text based on difficulty (simplified)
-let safetyText = '';
-switch (route.difficulty) {
-  case 'Хялбар':
-    safetyText = 'Зам өргөн, дундаж ши.visualizaаж байгаа.';
-    break;
-  case 'Дунд':
-    safetyText = 'Хэтрэл чандман зам, том идэртгэлтэй.';
-    break;
-  case 'Хэцүү':
-    safetyText = 'Д архи, дээдэн цэгүүдтэй, алдаамжтой.';
-    break;
-  default:
-    safetyText = 'Маршрутын тодорхойлолт байхгүй.';
-}
-document.getElementById('safety-text').textContent = safetyText;
+    document.getElementById('route-name').textContent = route.name;
+    document.getElementById('route-desc').textContent = route.desc;
+    document.getElementById('route-badge').textContent = route.difficulty;
+    document.getElementById('route-story').textContent = `${route.desc} Энэ зам нь ${route.distanceKm} км-ийн урттай, ${route.elevationM} м-ийн өгсөлттэй учраас богино хугацаанд сайн адал явдал, амралтын аялал зохион байгуулахад тохиромжтой.`;
+    document.querySelector('.detail-hero').style.background = `linear-gradient(135deg, rgba(10,24,16,.82), rgba(42,75,53,.7)), url('${route.image}') center/cover no-repeat`;
 
-// Save button (demo)
-document.getElementById('save-btn').addEventListener('click', () => {
-  alert('Хадгалагдлаа (демо — Firebase холбогдоогүй тул reload хийвэл алга болно).');
-});
+    document.getElementById('stat-row').innerHTML = `
+      <div><b>${route.distanceKm} км</b><span>Зай</span></div>
+      <div><b>${route.elevationM} м</b><span>Өгсөлт</span></div>
+      <div><b>${route.timeHr}</b><span>Цаг</span></div>
+      <div><b>${route.difficulty}</b><span>Түвшин</span></div>
+      <div><b>${route.season}</b><span>Улирал</span></div>
+    `;
 
-// Initialize map if track data exists
-if (route.track && route.track.length >= 2) {
-  const map = L.map('map').setView(route.track[0], 13);
+    document.getElementById('fact-distance').textContent = `${route.distanceKm} км`;
+    document.getElementById('fact-elevation').textContent = `${route.elevationM} м`;
+    document.getElementById('fact-time').textContent = route.timeHr;
+    document.getElementById('fact-season').textContent = route.season;
 
-  // Add OSM tile layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+    document.getElementById('route-highlights').innerHTML = `
+      <li><span>Тохиромжтой улирал</span><strong>${route.season}</strong></li>
+      <li><span>Хугацаа</span><strong>${route.timeHr} цаг</strong></li>
+      <li><span>Түвшин</span><strong>${route.difficulty}</strong></li>
+    `;
 
-  // Add polyline for the track
-  const polyline = L.polyline(route.track, {color: 'green'}).addTo(map);
+    // Populate 'Who needs this route' heuristically
+    const audiences = [];
+    try {
+      if (typeof route.distanceKm === 'number') {
+        if (route.distanceKm <= 5) audiences.push('богино хугацааны алхагчид');
+        if (route.distanceKm <= 8 && route.distanceKm > 5) audiences.push('Гэр бүл, анх удаа алхагчид');
+        if (route.distanceKm > 8) audiences.push('Туршлагатай алхагчид');
+      }
 
-  // Optional: zoom to fit the polyline
-  map.fitBounds(polyline.getBounds());
-} else {
-  document.getElementById('map').innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
-}
+      if (route.difficulty) {
+        if (route.difficulty.includes('Хялбар') || route.difficulty.includes('Хөнгөн')) audiences.push('анх х удаа алхагчид');
+        if (route.difficulty.includes('Дунд')) audiences.push('Сонирхогчид');
+        if (route.difficulty.includes('Хэцүү')) audiences.push('Туршлагатай алхагчид / авирагчид');
+      }
+
+      if (route.timeHr) {
+        const nums = (route.timeHr.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+        const max = nums.length ? Math.max(...nums) : 0;
+        if (max >= 6) audiences.push('Multi-hour / endurance');
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const audienceEl = document.getElementById('route-audience');
+    if (audiences.length === 0) {
+      audienceEl.innerHTML = '<li>General hikers</li>';
+    } else {
+      audienceEl.innerHTML = audiences.map(a => `<li>${a}</li>`).join('');
+    }
+
+    const mapsLink = document.getElementById('google-maps-link');
+    if (route.track && route.track.length > 0) {
+      const [lat, lng] = route.track[0];
+      mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      mapsLink.textContent = 'Google Maps дээр харах';
+    } else {
+      mapsLink.href = '#';
+      mapsLink.textContent = 'Route location unavailable';
+      mapsLink.setAttribute('aria-disabled', 'true');
+    }
+
+    let safetyText = '';
+    switch (route.difficulty) {
+      case 'Хялбар':
+        safetyText = 'Зам өргөн, явган алхахад хялбар, анхаарах зүйл бага байна.';
+        break;
+      case 'Хөнгөн - Дунд':
+        safetyText = 'Замын налуу дунджаар, цэвэр агаар, сайн бэлтгэлтэй явна.';
+        break;
+      case 'Дунд':
+        safetyText = 'Налуу болон хадны хэсэгтэй байж болох тул гутал, ус авч явахыг зөвлө.';
+        break;
+      case 'Хэцүү':
+        safetyText = 'Уулын эгц хэсэг, цаг агаарын өөрчлөлт ихтэй тул эхний цэгээс бэлэн байгаарай.';
+        break;
+      default:
+        safetyText = 'Маршрутын тодорхойлолт байхгүй.';
+    }
+    document.getElementById('safety-text').textContent = safetyText;
+
+    if (route.track && route.track.length >= 2) {
+      const map = L.map('map').setView(route.track[0], 13);
+      L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://opentopomap.org">OpenTopoMap</a>'
+      }).addTo(map);
+
+      const polyline = L.polyline(route.track, { color: 'green', weight: 5 }).addTo(map);
+      map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
+    } else {
+      document.getElementById('map').innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
+    }
+  }
+
+  // If routes data is already available use it immediately, otherwise wait for the event
+  if (Array.isArray(window.ROUTES) && window.ROUTES.length > 0) {
+    renderRouteDetails();
+  } else {
+    window.addEventListener('routes:ready', () => {
+      renderRouteDetails();
+    }, { once: true });
+    // As a fallback, try again after a short delay
+    setTimeout(() => {
+      if (!Array.isArray(window.ROUTES) || window.ROUTES.length === 0) renderRouteDetails();
+    }, 250);
+  }
 </script>
 </body>
 </html>
