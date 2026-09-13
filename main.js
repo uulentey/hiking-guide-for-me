@@ -175,12 +175,12 @@ const ROUTES = [
     id: 'bogd-khan-summit',
     name: 'Цэцээ гүн — Богд хайрхан дээд цэг',
     image: 'zurag/tsetseeGun.jpg',
-    difficulty: 'Хэцүү',
-    distanceKm: 15,
-    elevationM: 900,
-    timeHr: '6–8',
+    difficulty: 'Дунд',
+    distanceKm: 6,
+    elevationM: 1100,
+    timeHr: '4-5',
     season: '6-р сар – 9-р сар',
-    desc: 'Богд хайрханы хамгийн өндөр цуг.',
+    desc: 'Богдхан уулын хамгийн өндөр цэг.',
     track: [
       [47.80, 106.70],
       [47.82, 106.72],
@@ -220,7 +220,7 @@ try {
 function routeCardHTML(r) {
   return `
     <a class="route-card" href="route-detail.html?id=${r.id}">
-      <div class="route-thumb" style="background-image:url('${r.image}')">
+      <div class="route-  thumb" style="background-image:url('${r.image}')">
         <span class="diff">${r.difficulty}</span>
       </div>
       <div class="route-body">
