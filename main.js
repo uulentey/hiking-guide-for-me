@@ -1,264 +1,209 @@
+/* walky: usable hiking planning without requiring a backend during development. */
+const FALLBACK_ROUTES = [
+  { id: 'bogd-khan-yagaan-sandal', name: 'Ягаан сандал', image: 'zurag/emoSandal.jpg', area: 'Богд хан уул', difficulty: 'Хөнгөн - Дунд', distanceKm: 4, elevationM: 480, timeHr: '1.5–2', durationHours: 2, season: '5-р сар – 10-р сар', status: 'Богино аялалд тохиромжтой', desc: 'Хотын хажууд, ой дундуур алхаж зураг авах болон амарч суухад тохиромжтой маршрут.', track: [[47.838254,106.890664],[47.838626,106.891865],[47.839131,106.89813],[47.843413,106.903208],[47.84981,106.900783],[47.854116,106.90151],[47.861016,106.903578]] },
+  { id: 'bogd-khan-dugui-tsagaan', name: 'Дугуй цагаан', image: 'zurag/duguiTsagaan.jpg', area: 'Зайсан · Богд хан уул', difficulty: 'Хялбар', distanceKm: 3.5, elevationM: 400, timeHr: '1–1.5', durationHours: 1.5, season: 'Жилийн турш', status: 'Анхлан алхагчдад', desc: 'Зайсангаас эхлэх, ой мод ба хотын үзэмж хосолсон богино, ойлгомжтой алхалт.', track: [[47.88,106.88],[47.89,106.89],[47.90,106.90],[47.91,106.91]] },
+  { id: 'terelj-turtle-rock', name: 'Тэрэлж — Мэлхий хад', image: 'zurag/terelj.jpg', area: 'Горхи-Тэрэлж', difficulty: 'Хялбар', distanceKm: 5, elevationM: 90, timeHr: '1.5–2', durationHours: 2, season: 'Жилийн турш', status: 'Гэр бүлээрээ явахад', desc: 'Танил, тэгшхэн замтай, зураг авч байгальд гарах өдрийн хөнгөн сонголт.', track: [[47.95,107.45],[47.96,107.46],[47.97,107.47]] },
+  { id: 'bogd-khan-summit', name: 'Цэцээ гүн', image: 'zurag/tsetseeGun.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 6, elevationM: 1100, timeHr: '4–5', durationHours: 5, season: '6-р сар – 9-р сар', status: 'Сайн бэлтгэл шаардлагатай', desc: 'Богд хан уулын өндөрлөг рүү хүрэх, тэсвэр ба цагийн бэлтгэл шаарддаг сонгодог алхалт.', track: [[47.80,106.70],[47.82,106.72],[47.84,106.74],[47.86,106.76],[47.88,106.78]] },
+  { id: 'tenger-rock', name: 'Тэнгэр хад', image: 'zurag/tengerHad.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 8, elevationM: 300, timeHr: '3–4', durationHours: 4, season: 'Жилийн турш', status: 'Өдрийн адал явдал', desc: 'Уулын зам, ой мод, хад асгыг нэг өдрийн дотор мэдрэх илүү урт сонголт.', track: [[47.92,106.92],[47.93,106.93],[47.94,106.94]] }
+];
+
+let ROUTES = [...FALLBACK_ROUTES];
+window.ROUTES = ROUTES;
+
+function setRoutes(routes) {
+  if (!Array.isArray(routes) || !routes.length) return;
+  ROUTES = routes.map((route) => ({ ...route, durationHours: route.durationHours || Number.parseFloat(route.timeHr) || 2 }));
+  window.ROUTES = ROUTES;
+  window.dispatchEvent(new Event('routes:updated'));
+  window.dispatchEvent(new Event('routes:ready'));
+}
+
 function initMobileNav() {
   const toggle = document.querySelector('.nav-toggle');
-  const nav = document.querySelector('nav.primary-nav');
-  if (!toggle || !nav) return;
+  const nav = document.querySelector('.primary-nav');
+  if (!toggle || !nav || toggle.dataset.ready) return;
+  toggle.dataset.ready = 'true';
+  toggle.addEventListener('click', () => {
+    const open = !nav.classList.contains('open');
+    nav.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = open ? '×' : '☰';
+  });
+}
 
-  const setMenuState = (isOpen) => {
-    nav.classList.toggle('open', isOpen);
-    toggle.classList.toggle('is-open', isOpen);
-    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    toggle.textContent = isOpen ? '✕' : '☰';
+function initAccount() {
+  const header = document.querySelector('.site-header .wrap');
+  if (!header || document.querySelector('#account-area')) return;
+
+  const account = document.createElement('div');
+  account.className = 'account-area';
+  account.id = 'account-area';
+  account.innerHTML = `
+    <button class="sign-in-button" id="sign-in-button" type="button"><span class="google-mark">G</span><span>Нэвтрэх</span></button>
+    <div class="profile-wrap" id="profile-wrap" hidden>
+      <button class="profile-button" id="profile-button" type="button" aria-expanded="false" aria-controls="profile-menu">
+        <img id="profile-image" alt=""><span id="profile-name"></span><span class="profile-chevron">⌄</span>
+      </button>
+      <div class="profile-menu" id="profile-menu" hidden>
+        <div class="profile-summary"><strong id="profile-menu-name"></strong><span id="profile-email"></span></div>
+        <a href="explore.html" class="profile-saved-link">♡ Хадгалсан маршрутууд</a>
+        <button type="button" id="sign-out-button">Гарах</button>
+      </div>
+    </div>
+    <p class="auth-message" id="auth-message" role="status" hidden></p>`;
+  header.appendChild(account);
+
+  const signInButton = account.querySelector('#sign-in-button');
+  const profileWrap = account.querySelector('#profile-wrap');
+  const profileButton = account.querySelector('#profile-button');
+  const profileMenu = account.querySelector('#profile-menu');
+  const message = account.querySelector('#auth-message');
+  const showMessage = (text, shouldDismiss = false) => {
+    message.textContent = text;
+    message.hidden = false;
+    if (shouldDismiss) window.setTimeout(() => { message.hidden = true; }, 5000);
+  };
+  const render = (user) => {
+    const isSignedInWithGoogle = Boolean(user && !user.isAnonymous);
+    signInButton.hidden = isSignedInWithGoogle;
+    profileWrap.hidden = !isSignedInWithGoogle;
+    if (!isSignedInWithGoogle) return;
+    const displayName = user.displayName || user.email?.split('@')[0] || 'Алхагч';
+    account.querySelector('#profile-name').textContent = displayName;
+    account.querySelector('#profile-menu-name').textContent = displayName;
+    account.querySelector('#profile-email').textContent = user.email || '';
+    const image = account.querySelector('#profile-image');
+    image.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=d5e681&color=153d2e`;
+    image.alt = `${displayName}-ийн профайл`;
   };
 
-  toggle.addEventListener('click', () => {
-    setMenuState(!nav.classList.contains('open'));
-  });
-
-  nav.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => setMenuState(false));
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 760) setMenuState(false);
-  });
-}
-
-function reloadPageScriptsFromHtml(html) {
-  const parser = new DOMParser();
-  const newDocument = parser.parseFromString(html, 'text/html');
-  const scripts = Array.from(newDocument.querySelectorAll('script'));
-
-  document.title = newDocument.title;
-  document.documentElement.innerHTML = newDocument.documentElement.innerHTML;
-
-  // Load external scripts sequentially to ensure they execute before inline scripts
-  const externalScripts = scripts.filter(s => s.src);
-  const inlineScripts = scripts.filter(s => !s.src);
-
-  const loadExternal = (src) => new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.async = false;
-    s.onload = () => resolve();
-    s.onerror = () => resolve();
-    document.body.appendChild(s);
-  });
-
-  // Return a promise that resolves after all scripts are appended and external ones loaded
-  return externalScripts.reduce((p, s) => p.then(() => loadExternal(s.src)), Promise.resolve())
-    .then(() => {
-      inlineScripts.forEach((script) => {
-        const replacement = document.createElement('script');
-        replacement.textContent = script.textContent;
-        document.body.appendChild(replacement);
-      });
-    });
-}
-
-function loadPageViaAjax(url) {
-  fetch(url, { headers: { 'X-Requested-With': 'fetch' } })
-    .then((response) => {
-      if (!response.ok) throw new Error('Navigation failed');
-      return response.text();
-    })
-    .then((html) => {
-      // Update the URL first so inline scripts can read query params immediately
-      try {
-        window.history.pushState({ url }, '', url);
-      } catch (e) {
-        // ignore
-      }
-      return reloadPageScriptsFromHtml(html).then(() => {
-        initMobileNav();
-        bindAjaxLinks();
-      });
-    })
-    .catch(() => {
-      window.location.href = url;
-    });
-}
-
-function bindAjaxLinks() {
-  document.querySelectorAll('a[href]').forEach((link) => {
-    if (link.dataset.ajaxBound === 'true') return;
-
-    const href = link.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
-    if (link.target === '_blank' || link.hasAttribute('download')) return;
-
-    try {
-      const url = new URL(href, window.location.href);
-      if (url.origin !== window.location.origin) return;
-    } catch (error) {
-      return;
+  signInButton.addEventListener('click', async () => {
+    signInButton.disabled = true;
+    signInButton.querySelector('span:last-child').textContent = 'Нэвтэрч байна…';
+    message.hidden = true;
+    try { await window.WalkyStore?.signInWithGoogle(); }
+    catch (error) {
+      const errors = {
+        'auth/unauthorized-domain': 'Энэ домэйн Firebase-д зөвшөөрөгдөөгүй байна. Firebase Authentication → Settings → Authorized domains хэсэгт localhost (эсвэл байршуулсан сайтын домэйн)-оо нэмээрэй.',
+        'auth/operation-not-allowed': 'Firebase Authentication дээр Google sign-in provider идэвхгүй байна.',
+        'auth/popup-blocked': 'Хөтөч Google нэвтрэх попапыг хаалаа. Попапыг зөвшөөрөөд дахин оролдоорой.',
+        'auth/popup-closed-by-user': 'Google нэвтрэх цонх хаагдсан байна. Дахин оролдоорой.',
+        'auth/cancelled-popup-request': 'Нэвтрэх хүсэлт цуцлагдсан. Дахин оролдоорой.'
+      };
+      showMessage(errors[error.code] || `Нэвтрэхэд асуудал гарлаа: ${error.message || 'дахин оролдоорой.'}`);
+    } finally {
+      signInButton.disabled = false;
+      signInButton.querySelector('span:last-child').textContent = 'Нэвтрэх';
     }
-
-    link.dataset.ajaxBound = 'true';
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      loadPageViaAjax(link.href);
-    });
   });
+  profileButton.addEventListener('click', () => {
+    const isOpen = !profileMenu.hidden;
+    profileMenu.hidden = isOpen;
+    profileButton.setAttribute('aria-expanded', String(!isOpen));
+  });
+  account.querySelector('#sign-out-button').addEventListener('click', async () => {
+    await window.WalkyStore?.signOut();
+    profileMenu.hidden = true;
+  });
+  document.addEventListener('click', (event) => {
+    if (!account.contains(event.target)) { profileMenu.hidden = true; profileButton.setAttribute('aria-expanded', 'false'); }
+  });
+  window.WalkyStore?.onAuthStateChanged?.(render);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  initMobileNav();
-  bindAjaxLinks();
-});
-
-window.addEventListener('popstate', () => {
-  if (window.location.href) {
-    return;
-  }
-});
-const ROUTES = [
-  {
-    id: 'bogd-khan-yagaan-sandal',
-    name: 'Ягаан сандал',
-    image: 'zurag/emoSandal.jpg',
-    difficulty: 'Хөнгөн - Дунд',
-    distanceKm: 4,
-    elevationM: 480,
-    timeHr: '1.5–2',
-    season: '5-р сар – 10-р сар',
-    desc: 'Богд уулын замаар богино хугацаанд алхаж хүрэх боломжтой зураг авах болон амарч суун эморолд ороход тохиромжтой цэг.',
-    track: [
-      [47.838254302576644, 106.89066403141408],
-      [47.838626288239254, 106.89186496158658],
-      [47.83874618380668, 106.89400844100138],
-      [47.83831798406552, 106.89611364423878],
-      [47.83913156052589, 106.89812953559317],
-      [47.83970533835782, 106.89986473321467],
-      [47.83959400882693, 106.90427928010466],
-      [47.843413331684964, 106.9032075405279],
-      [47.847806061612786, 106.90196993637862],
-      [47.849809639464446, 106.90078336732903],
-      [47.85092270479016, 106.90126820195856],
-      [47.854116213539356, 106.9015106192655],
-      [47.85766052111331, 106.90265891194981],
-      [47.86101626051274, 106.90357754599195]
-]},
-  {
-    id: 'bogd-khan-dugui-tsagaan',
-    name: 'Дугуй цагаан',
-    image: 'zurag/duguiTsagaan.jpg',
-    difficulty: 'Хялбар',
-    distanceKm: 3.5,
-    elevationM: 400,
-    timeHr: '1.',
-    season: 'Жилийн турш',
-    desc: 'Зайсангийн амнаас эхэлж Богдхан уулын ой модон дундуур өгсөн, хотын төвтэй ойрхон байгальд гарах мэдрэмж төрүүлэх богино аяллын чиглэл.',
-    track: [
-      [47.88, 106.88],
-      [47.89, 106.89],
-      [47.90, 106.90],
-      [47.91, 106.91]
-    ]
-  },
-  {
-    id: 'terelj-turtle-rock',
-    name: 'Тэрэлж — Мэлхий хад',
-    image: 'zurag/terelj.jpg',
-    difficulty: 'Хялбар',
-    distanceKm: 5,
-    elevationM: 90,
-    timeHr: '1.5–2',
-    season: 'Жилийн турш',
-    desc: 'Түгээмэл зорчдог, гэрэл зурагт сайн, богино алхалт.',
-    track: [
-      [47.95, 107.45],
-      [47.96, 107.46],
-      [47.97, 107.47]
-    ]
-  },
-  {
-    id: 'bogd-khan-summit',
-    name: 'Цэцээ гүн — Богд хайрхан дээд цэг',
-    image: 'zurag/tsetseeGun.jpg',
-    difficulty: 'Дунд',
-    distanceKm: 6,
-    elevationM: 1100,
-    timeHr: '4-5',
-    season: '6-р сар – 9-р сар',
-    desc: 'Богдхан уулын хамгийн өндөр цэг.',
-    track: [
-      [47.80, 106.70],
-      [47.82, 106.72],
-      [47.84, 106.74],
-      [47.86, 106.76],
-      [47.88, 106.78]
-    ]
-  },
-  {
-    id: 'tenger-rock',
-    name: 'тэнгэр хад',
-    image: 'zurag/tengerHad.jpg',
-    difficulty: 'Дунд',
-    distanceKm: 8,
-    elevationM: 300,
-    timeHr: '3–4',
-    season: 'Жилийн турш',
-    desc: 'Хотын төвөөс холдохгүйгээр уулын зам, ой мод, хад асгыг мэдрэх Богдхан уулын хамгийн хүртээмжтэй маршрутуудын нэг.',
-    track: [
-      [47.92, 106.92],
-      [47.93, 106.93],
-      [47.94, 106.94]
-    ]
-  }
-];
-window.ROUTES = ROUTES;
-// Notify listeners that routes data is available
-try {
-  window.dispatchEvent(new Event('routes:ready'));
-} catch (e) {
-  // older browsers support
-  const evt = document.createEvent('Event');
-  evt.initEvent('routes:ready', true, true);
-  window.dispatchEvent(evt);
+function formatDifficulty(difficulty) {
+  if (difficulty === 'Хялбар') return 'easy';
+  if (difficulty.includes('Дунд')) return 'moderate';
+  return 'hard';
 }
 
-function routeCardHTML(r) {
-  return `
-    <a class="route-card" href="route-detail.html?id=${r.id}">
-      <div class="route-  thumb" style="background-image:url('${r.image}')">
-        <span class="diff">${r.difficulty}</span>
+function routeCardHTML(route) {
+  return `<article class="route-card">
+    <a class="route-card-link" href="route-detail.html?id=${encodeURIComponent(route.id)}" aria-label="${route.name} дэлгэрэнгүй">
+      <div class="route-thumb" style="background-image:linear-gradient(180deg,transparent 40%,rgba(10,28,18,.58)),url('${route.image}')">
+        <span class="route-area">${route.area || 'Улаанбаатар орчим'}</span>
+        <span class="diff ${formatDifficulty(route.difficulty)}">${route.difficulty}</span>
       </div>
       <div class="route-body">
-        <h3>${r.name}</h3>
-        <p>${r.desc}</p>
-        <div class="route-stats">
-          <span><b>${r.distanceKm}</b> км</span>
-          <span><b>${r.elevationM}</b> м өгсөлт</span>
-          <span><b>${r.timeHr}</b> цаг</span>
-        </div>
+        <p class="route-status">${route.status || 'Маршрут'}</p>
+        <h3>${route.name}</h3>
+        <p>${route.desc}</p>
+        <div class="route-stats"><span>↔ <b>${route.distanceKm}</b> км</span><span>↗ <b>${route.elevationM}</b> м</span><span>◷ <b>${route.timeHr}</b> цаг</span></div>
       </div>
-    </a>`;
+    </a>
+    <button class="save-route" data-route-id="${route.id}" type="button" aria-label="${route.name} хадгалах">♡ <span>Хадгалах</span></button>
+  </article>`;
 }
 
-function renderRoutes(list, targetSelector) {
+function getSavedRouteIds() {
+  try { return JSON.parse(localStorage.getItem('walky:saved-routes') || '[]'); } catch { return []; }
+}
+
+function updateSaveButtons() {
+  const saved = getSavedRouteIds();
+  document.querySelectorAll('.save-route').forEach((button) => {
+    const isSaved = saved.includes(button.dataset.routeId);
+    button.classList.toggle('saved', isSaved);
+    button.innerHTML = isSaved ? '♥ <span>Хадгалсан</span>' : '♡ <span>Хадгалах</span>';
+  });
+}
+
+function bindSaveButtons() {
+  document.querySelectorAll('.save-route').forEach((button) => {
+    if (button.dataset.ready) return;
+    button.dataset.ready = 'true';
+    button.addEventListener('click', async () => {
+      const id = button.dataset.routeId;
+      const saved = getSavedRouteIds();
+      const next = saved.includes(id) ? saved.filter((item) => item !== id) : [...saved, id];
+      localStorage.setItem('walky:saved-routes', JSON.stringify(next));
+      if (window.WalkyStore?.saveRoute) await window.WalkyStore.saveRoute(id, !saved.includes(id));
+      updateSaveButtons();
+    });
+  });
+}
+
+function renderRoutes(list = ROUTES, targetSelector = '#route-grid') {
   const target = document.querySelector(targetSelector);
   if (!target) return;
-  target.innerHTML = list.map(routeCardHTML).join('');
+  target.innerHTML = list.length ? list.map(routeCardHTML).join('') : '<div class="empty-state"><strong>Тохирох маршрут олдсонгүй.</strong><span>Хайлтаа эсвэл шүүлтүүрээ өөрчилж үзээрэй.</span></div>';
+  bindSaveButtons();
+  updateSaveButtons();
 }
 
 function initExplore() {
-  const grid = '#route-grid';
-  renderRoutes(ROUTES, grid);
-
   const search = document.querySelector('#search-input');
-  const diffFilter = document.querySelector('#difficulty-filter');
-
-  function applyFilters() {
-    const q = (search?.value || '').toLowerCase();
-    const diff = diffFilter?.value || '';
-    const filtered = ROUTES.filter(r => {
-      const matchesQuery = r.name.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
-      const matchesDiff = !diff || r.difficulty === diff;
-      return matchesQuery && matchesDiff;
+  const difficulty = document.querySelector('#difficulty-filter');
+  const duration = document.querySelector('#duration-filter');
+  const count = document.querySelector('#route-count');
+  const applyFilters = () => {
+    const query = (search?.value || '').trim().toLowerCase();
+    const selectedDifficulty = difficulty?.value || '';
+    const selectedDuration = duration?.value || '';
+    const filtered = ROUTES.filter((route) => {
+      const searchable = `${route.name} ${route.desc} ${route.area}`.toLowerCase();
+      return (!query || searchable.includes(query)) && (!selectedDifficulty || route.difficulty === selectedDifficulty) && (!selectedDuration || route.durationHours <= Number(selectedDuration));
     });
-    renderRoutes(filtered, grid);
-  }
-
-  search?.addEventListener('input', applyFilters);
-  diffFilter?.addEventListener('change', applyFilters);
+    renderRoutes(filtered);
+    if (count) count.textContent = `${filtered.length} маршрут`;
+  };
+  [search, difficulty, duration].forEach((input) => input?.addEventListener('input', applyFilters));
+  window.addEventListener('routes:updated', applyFilters);
+  applyFilters();
 }
+
+function initHome() {
+  renderRoutes(ROUTES.slice(0, 3));
+  window.addEventListener('routes:updated', () => renderRoutes(ROUTES.slice(0, 3)));
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  initMobileNav();
+  initAccount();
+  if (document.body.dataset.page === 'home') initHome();
+  if (document.body.dataset.page === 'explore') initExplore();
+  if (['home', 'explore'].includes(document.body.dataset.page) && window.WalkyStore?.loadRoutes) {
+    const remoteRoutes = await window.WalkyStore.loadRoutes();
+    if (remoteRoutes?.length) setRoutes(remoteRoutes);
+  }
+});

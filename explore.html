@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live2Hike</title>
+<title>walky</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-page="explore">
 
 <header class="site-header">
   <div class="wrap">
@@ -14,14 +14,14 @@
       <span class="mark">
         <svg viewBox="0 0 24 24"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </span>
-      Live2Hike
+      walky
     </a>
     <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
     <nav class="primary-nav">
       <a href="index.html">Нүүр</a>
-      <a href="explore.html" class="active">Explore</a>
+      <a href="explore.html" class="active">Маршрутууд</a>
       <a href="map.html">Газрын зураг</a>
-      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
+      <a href="index.html#home">Төлөвлөх</a>
     </nav>
   </div>
 </header>
@@ -29,29 +29,36 @@
 <section style="padding-bottom:0;">
   <div class="wrap">
     <div class="section-head">
-      <h2>Маршрут хайх</h2>
+      <div><p class="eyebrow">Маршрут сонгох</p><h2>Чамд тохирох алхалтаа ол</h2></div>
+      <span class="route-count" id="route-count">5 маршрут</span>
     </div>
 
     <div class="explore-hero">
       <div class="explore-hero-copy">
-        <span class="eyebrow">Explore</span>
-        <h3>Хаашаа алхахаа сонгоорой</h3>
-        <p>Хотоос ойр Богд уул, Тэрэлж, гэр бүлээрээ явах боломжтой замуудын дундаас хамгийн тохирох маршрутаа олоорой.</p>
+        <span class="eyebrow">Өнөөдрийн төлөвлөгөө</span>
+        <h3>Цагаа биш, дурсамжаа тооцоорой.</h3>
+        <p>Богино алхалт, бүтэн өдрийн адал явдал, эсвэл анх удаагийн жим — өөрийн хэмнэлээр сонго.</p>
       </div>
       <div class="explore-hero-metrics">
-        <div><strong>5+</strong><span>сонирхолтой маршрут</span></div>
+        <div><strong>5</strong><span>сонгосон маршрут</span></div>
         <div><strong>3</strong><span>түвшин</span></div>
-        <div><strong>1</strong><span>сэтгэл ханамж</span></div>
+        <div><strong>∞</strong><span>гадаах дурсамж</span></div>
       </div>
     </div>
 
     <div class="filter-bar">
-      <input type="search" id="search-input" placeholder="Маршрутын нэрээр хайх...">
+      <input type="search" id="search-input" placeholder="Нэр, байршлаар хайх..." aria-label="Маршрут хайх">
       <select id="difficulty-filter">
         <option value="">Бүх түвшин</option>
         <option value="Хялбар">Хялбар</option>
+        <option value="Хөнгөн - Дунд">Хөнгөн - Дунд</option>
         <option value="Дунд">Дунд</option>
-        <option value="Хэцүү">Хэцүү</option>
+      </select>
+      <select id="duration-filter" aria-label="Хугацаагаар шүүх">
+        <option value="">Хэдэн цаг вэ?</option>
+        <option value="2">2 цагаас бага</option>
+        <option value="4">4 цагаас бага</option>
+        <option value="8">Өдрийн дотор</option>
       </select>
     </div>
 
@@ -61,12 +68,16 @@
 
 <footer>
   <div class="wrap">
-    <div>Live2Hike</div>
+    <div>walky</div>
     <div>route + map + community</div>
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-service.js"></script>
 <script src="main.js"></script>
-<script>initExplore();</script>
 </body>
 </html>

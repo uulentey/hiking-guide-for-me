@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>live2Hike</title>
+  <title>walky</title>
   <link rel="stylesheet" href="style.css">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -18,14 +18,14 @@
       <span class="mark">
         <svg viewBox="0 0 24 24"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </span>
-      Live2Hike
+      walky
     </a>
     <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
     <nav class="primary-nav">
       <a href="index.html">Нүүр</a>
       <a href="explore.html">Маршрутууд</a>
       <a href="map.html">Газрын зураг</a>
-      <a href="#" onclick="alert('V2-т нэмэгдэнэ');return false;">Community</a>
+      <a href="explore.html">Төлөвлөх</a>
     </nav>
   </div>
 </header>
@@ -49,18 +49,18 @@
     <div class="detail-main">
       <div class="detail-card detail-story">
         <div class="card-kicker">Замийн товч</div>
-        <h2> яагаад энэ жим гэж?</h2>
+        <h2>Яагаад энэ жим вэ?</h2>
         <p id="route-story"></p>
       </div>
 
       <div class="detail-card audience-card">
-        <div class="card-kicker">Хэнд ?</div>
-        <h2>Хэнд энэ жим тохирох вэ ?</h2>
+        <div class="card-kicker">Хэнд тохирох вэ?</div>
+        <h2>Энэ жимийг хэн сонгох вэ?</h2>
         <ul id="route-audience" class="audience-list"></ul>
       </div>
 
       <div class="detail-card">
-        <div class="card-kicker">жимын тухай</div>
+        <div class="card-kicker">Жимийн тухай</div>
         <div class="stat-row" id="stat-row"></div>
         <ul id="route-highlights" class="route-highlights"></ul>
       </div>
@@ -93,11 +93,11 @@
       <div class="detail-card quick-panel">
         <div class="card-kicker">Явахааса өмнө</div>
         <div class="check-list">
-          <span> 1–2Л ус</span>
-          <span> Тохиромжтой гутал</span>
-          <span>Тохиромжтой хувцас</span>
-          <span> Гар утас</span>
-          <span> Өөрт хэрэгтэй эм </span>
+          <span>✓ 1–2 л ус</span>
+          <span>✓ Тохиромжтой гутал</span>
+          <span>✓ Давхарлах хувцас</span>
+          <span>✓ Цэнэгтэй гар утас</span>
+          <span>✓ Хувийн эм</span>
         </div>
       </div>
     </aside>
@@ -106,7 +106,7 @@
 
 <footer>
   <div class="wrap">
-    <div>Live2Hike</div>
+    <div>walky</div>
     <div>route database + map + community + planning</div>
   </div>
 </footer>
@@ -114,6 +114,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
   crossorigin=""></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-service.js"></script>
 <script src="main.js"></script>
 <script>
   function renderRouteDetails() {
