@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /routes/{routeId} {
+      allow read: if resource.data.published == true;
+    }
+    match /users/{userId}/savedRoutes/{routeId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['saved', 'status', 'completedAt', 'updatedAt'])
+        && request.resource.data.status in ['saved', 'planned', 'completed', 'removed']
+        && request.resource.data.saved == (request.resource.data.status != 'removed')
+        && (request.resource.data.completedAt == null || request.resource.data.completedAt is string)
+        && request.resource.data.updatedAt == request.time;
+    }
+  }
+}

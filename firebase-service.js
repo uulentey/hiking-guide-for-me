@@ -7,17 +7,14 @@
   });
   let db = null;
   let auth = null;
-  let authReady = Promise.resolve(null);
   if (configured && window.firebase) {
     try {
       if (!firebase.apps.length) firebase.initializeApp(config);
       db = firebase.firestore();
       if (firebase.auth) {
         auth = firebase.auth();
-        authReady = auth.currentUser ? Promise.resolve(auth.currentUser) : auth.signInAnonymously().catch((error) => {
-          console.warn('[walky] Anonymous sign-in is not enabled; saved routes stay on this device.', error);
-          return null;
-        });
+        // Let Firebase restore the existing session. Visitors keep their hikes
+        // locally until they explicitly sign in; no competing anonymous login.
       }
     }
     catch (error) { console.warn('[walky] Firebase could not start; using local routes.', error); }
@@ -26,19 +23,23 @@
     configured: Boolean(db),
     async loadRoutes() {
       if (!db) return null;
-      try { const snapshot = await db.collection('routes').where('published', '==', true).get(); return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })); }
+      try { const snapshot = await db.collection('routes').where('published', '==', true).get(); return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })); }
       catch (error) { console.warn('[walky] Could not load Firestore routes; using local routes.', error); return null; }
     },
-    async saveRoute(routeId, saved) {
-      if (!db || !auth) return;
-      try {
-        const user = auth.currentUser || await authReady;
-        if (!user) return;
-        await db.collection('users').doc(user.uid).collection('savedRoutes').doc(routeId).set({
-          saved,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (error) { console.warn('[walky] Could not sync saved route.', error); }
+    watchHikes(uid, onChange, onError) {
+      return db.collection('users').doc(uid).collection('savedRoutes')
+        .onSnapshot({ includeMetadataChanges: true }, (snapshot) => {
+          onChange(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })), snapshot.metadata);
+        }, onError);
+    },
+    async writeHike(uid, routeId, hike) {
+      if (!db || auth?.currentUser?.uid !== uid) throw new Error('Account changed.');
+      await db.collection('users').doc(uid).collection('savedRoutes').doc(routeId).set({
+        saved: hike.status !== 'removed',
+        status: hike.status,
+        completedAt: hike.completedAt,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
     },
     onAuthStateChanged(callback) {
       if (!auth) { callback(null); return () => {}; }

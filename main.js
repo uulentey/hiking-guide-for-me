@@ -1,9 +1,9 @@
 /* walky: usable hiking planning without requiring a backend during development. */
 const FALLBACK_ROUTES = [
   { id: 'bogd-khan-yagaan-sandal', name: 'Ягаан сандал', image: 'zurag/emoSandal.jpg', area: 'Богд хан уул', difficulty: 'Хөнгөн - Дунд', distanceKm: 4, elevationM: 480, timeHr: '1.5–2', durationHours: 2, season: '5-р сар – 10-р сар', status: 'Богино аялалд тохиромжтой', desc: 'Хотын хажууд, ой дундуур алхаж зураг авах болон амарч суухад тохиромжтой маршрут.', track: [[47.838254,106.890664],[47.838626,106.891865],[47.839131,106.89813],[47.843413,106.903208],[47.84981,106.900783],[47.854116,106.90151],[47.861016,106.903578]] },
-  { id: 'bogd-khan-dugui-tsagaan', name: 'Дугуй цагаан', image: 'zurag/duguiTsagaan.jpg', area: 'Зайсан · Богд хан уул', difficulty: 'Хялбар', distanceKm: 3.5, elevationM: 400, timeHr: '1–1.5', durationHours: 1.5, season: 'Жилийн турш', status: 'Анхлан алхагчдад', desc: 'Зайсангаас эхлэх, ой мод ба хотын үзэмж хосолсон богино, ойлгомжтой алхалт.', track: [[47.88,106.88],[47.89,106.89],[47.90,106.90],[47.91,106.91]] },
-  { id: 'terelj-turtle-rock', name: 'Тэрэлж — Мэлхий хад', image: 'zurag/terelj.jpg', area: 'Горхи-Тэрэлж', difficulty: 'Хялбар', distanceKm: 5, elevationM: 90, timeHr: '1.5–2', durationHours: 2, season: 'Жилийн турш', status: 'Гэр бүлээрээ явахад', desc: 'Танил, тэгшхэн замтай, зураг авч байгальд гарах өдрийн хөнгөн сонголт.', track: [[47.95,107.45],[47.96,107.46],[47.97,107.47]] },
-  { id: 'bogd-khan-summit', name: 'Цэцээ гүн', image: 'zurag/tsetseeGun.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 6, elevationM: 1100, timeHr: '4–5', durationHours: 5, season: '6-р сар – 9-р сар', status: 'Сайн бэлтгэл шаардлагатай', desc: 'Богд хан уулын өндөрлөг рүү хүрэх, тэсвэр ба цагийн бэлтгэл шаарддаг сонгодог алхалт.', track: [[47.80,106.70],[47.82,106.72],[47.84,106.74],[47.86,106.76],[47.88,106.78]] },
+  { id: 'bogd-khan-dugui-tsagaan', name: 'Дугуй цагаан', image: 'zurag/duguiTsagaan.jpg', area: 'Зайсан · Богд хан уул', difficulty: 'Хялбар', distanceKm: 3.5, elevationM: 400, timeHr: '1–1.5', durationHours: 1.5, season: 'Жилийн турш', status: 'Анхлан алхагчдад', desc: 'Зайсангаас эхлэх, ой мод ба хотын үзэмж хосолсон богино, ойлгомжтой алхалт.', track: [[47.832885691002, 106.90323888928656],[47.83670170132313, 106.9050817501095],[47.83936435552002, 106.90436334673844],[47.84798203847225, 106.90196114771634],[47.84995240649048, 106.90068051561903],[47.850832759494615, 106.90127397927388],[47.85406059278539, 106.90171126829155],[47.861102440542915, 106.90358536405668]] },
+  { id: 'terelj-turtle-rock', name: 'Тэрэлж — Мэлхий хад', image: 'zurag/terelj.jpg', area: 'Горхи-Тэрэлж', difficulty: 'Хялбар', distanceKm: 5, elevationM: 90, timeHr: '1.5–2', durationHours: 2, season: 'Жилийн турш', status: 'Гэр бүлээрээ явахад', desc: 'Танил, тэгшхэн замтай, зураг авч байгальд гарах өдрийн хөнгөн сонголт.', track: [[47.90776211739745, 107.42272359697269],[47.90755649943039, 107.42351751895696],[ 47.907616975387846, 107.42425730989684]] },
+  { id: 'bogd-khan-summit', name: 'Цэцээ гүн', image: 'zurag/tsetseeGun.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 6, elevationM: 1100, timeHr: '4–5', durationHours: 5, season: '6-р сар – 9-р сар', status: 'Сайн бэлтгэл шаардлагатай', desc: 'Аялалын замд Манзуширын хийдийн түүхийн дурсгал, музей, амьтан, ургамал, Манзуширын гол зэрэг байгалийн сайхныг мэдэрч, түүхийн дурсгалт, төрийн тахилгат Цэцээ гүний ноён оргил хүрнэ..', track: [[47.80829589687586, 107.00250134653953],[47.80622118144706, 107.00227763432942],[47.79818108673404, 106.99917604385213],[47.79463981962129, 106.99917906967447],[47.79212077774624, 107.00031917915896],[47.78920987629669, 107.00055426348179],[47.78339264729877, 107.00237944424512],[47.78200821708559, 107.00249812791034],[47.7764488085867, 107.00177009833101],[47.77417400620167, 107.00129493404256],[47.77149046020959, 107.00072044478436],[47.76971622441126, 106.99938328071103],[47.76674035755306, 106.99762563578616],[47.76566811108079, 106.99531167418306],[47.7647018920567, 106.99292759254106]] },
   { id: 'tenger-rock', name: 'Тэнгэр хад', image: 'zurag/tengerHad.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 8, elevationM: 300, timeHr: '3–4', durationHours: 4, season: 'Жилийн турш', status: 'Өдрийн адал явдал', desc: 'Уулын зам, ой мод, хад асгыг нэг өдрийн дотор мэдрэх илүү урт сонголт.', track: [[47.92,106.92],[47.93,106.93],[47.94,106.94]] }
 ];
 
@@ -12,7 +12,13 @@ window.ROUTES = ROUTES;
 
 function setRoutes(routes) {
   if (!Array.isArray(routes) || !routes.length) return;
-  ROUTES = routes.map((route) => ({ ...route, durationHours: route.durationHours || Number.parseFloat(route.timeHr) || 2 }));
+  ROUTES = routes.map((route) => ({
+    ...route,
+    durationHours: route.durationHours || Number.parseFloat(route.timeHr) || 2,
+    // Firestore arrays cannot contain arrays; cloud tracks use coordinate maps.
+    track: Array.isArray(route.track) ? route.track.map((point) => Array.isArray(point) ? point : [point?.latitude, point?.longitude])
+      .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) : []
+  }));
   window.ROUTES = ROUTES;
   window.dispatchEvent(new Event('routes:updated'));
   window.dispatchEvent(new Event('routes:ready'));
@@ -46,7 +52,7 @@ function initAccount() {
       </button>
       <div class="profile-menu" id="profile-menu" hidden>
         <div class="profile-summary"><strong id="profile-menu-name"></strong><span id="profile-email"></span></div>
-        <a href="explore.html" class="profile-saved-link">♡ Хадгалсан маршрутууд</a>
+        <a href="my-hikes.html" class="profile-saved-link">♡ Миний алхалтууд</a>
         <button type="button" id="sign-out-button">Гарах</button>
       </div>
     </div>
@@ -117,33 +123,43 @@ function formatDifficulty(difficulty) {
   return 'hard';
 }
 
-function routeCardHTML(route) {
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+}
+
+function routeCardHTML(route, includeSave = true) {
+  const r = Object.fromEntries(Object.entries(route).map(([key, value]) => [key, escapeHTML(value)]));
+  const image = /^(https:\/\/|zurag\/)[^\s]+$/i.test(route.image || '') ? r.image : 'zurag/bogdGorhi.jpg';
   return `<article class="route-card">
-    <a class="route-card-link" href="route-detail.html?id=${encodeURIComponent(route.id)}" aria-label="${route.name} дэлгэрэнгүй">
-      <div class="route-thumb" style="background-image:linear-gradient(180deg,transparent 40%,rgba(10,28,18,.58)),url('${route.image}')">
-        <span class="route-area">${route.area || 'Улаанбаатар орчим'}</span>
-        <span class="diff ${formatDifficulty(route.difficulty)}">${route.difficulty}</span>
+    <a class="route-card-link" href="route-detail.html?id=${encodeURIComponent(route.id)}" aria-label="${r.name} дэлгэрэнгүй">
+      <div class="route-thumb">
+        <img src="${image}" alt="" loading="lazy">
+        <span class="route-area">${r.area || 'Улаанбаатар орчим'}</span>
+        <span class="diff ${formatDifficulty(String(route.difficulty || ''))}">${r.difficulty}</span>
       </div>
       <div class="route-body">
-        <p class="route-status">${route.status || 'Маршрут'}</p>
-        <h3>${route.name}</h3>
-        <p>${route.desc}</p>
-        <div class="route-stats"><span>↔ <b>${route.distanceKm}</b> км</span><span>↗ <b>${route.elevationM}</b> м</span><span>◷ <b>${route.timeHr}</b> цаг</span></div>
+        <p class="route-status">${r.status || 'Маршрут'}</p>
+        <h3>${r.name}</h3>
+        <p>${r.desc}</p>
+        <div class="route-stats"><span>↔ <b>${r.distanceKm}</b> км</span><span>↗ <b>${r.elevationM}</b> м</span><span>◷ <b>${r.timeHr}</b> цаг</span></div>
       </div>
     </a>
-    <button class="save-route" data-route-id="${route.id}" type="button" aria-label="${route.name} хадгалах">♡ <span>Хадгалах</span></button>
+    ${includeSave ? `<button class="save-route" data-route-id="${r.id}" data-route-name="${r.name}" type="button" aria-label="${r.name} хадгалах">♡ <span>Хадгалах</span></button>` : ''}
   </article>`;
 }
 
 function getSavedRouteIds() {
-  try { return JSON.parse(localStorage.getItem('walky:saved-routes') || '[]'); } catch { return []; }
+  return Object.entries(window.WalkyHikes.getState().items).filter(([, hike]) => hike.status !== 'removed').map(([id]) => id);
 }
 
 function updateSaveButtons() {
   const saved = getSavedRouteIds();
   document.querySelectorAll('.save-route').forEach((button) => {
     const isSaved = saved.includes(button.dataset.routeId);
+    button.disabled = !window.WalkyHikes.getState().ready;
     button.classList.toggle('saved', isSaved);
+    button.setAttribute('aria-pressed', String(isSaved));
+    button.setAttribute('aria-label', `${button.dataset.routeName} ${isSaved ? 'хадгалалтаас хасах' : 'хадгалах'}`);
     button.innerHTML = isSaved ? '♥ <span>Хадгалсан</span>' : '♡ <span>Хадгалах</span>';
   });
 }
@@ -152,12 +168,10 @@ function bindSaveButtons() {
   document.querySelectorAll('.save-route').forEach((button) => {
     if (button.dataset.ready) return;
     button.dataset.ready = 'true';
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       const id = button.dataset.routeId;
       const saved = getSavedRouteIds();
-      const next = saved.includes(id) ? saved.filter((item) => item !== id) : [...saved, id];
-      localStorage.setItem('walky:saved-routes', JSON.stringify(next));
-      if (window.WalkyStore?.saveRoute) await window.WalkyStore.saveRoute(id, !saved.includes(id));
+      window.WalkyHikes.setStatus(id, saved.includes(id) ? 'removed' : 'saved');
       updateSaveButtons();
     });
   });
@@ -166,7 +180,7 @@ function bindSaveButtons() {
 function renderRoutes(list = ROUTES, targetSelector = '#route-grid') {
   const target = document.querySelector(targetSelector);
   if (!target) return;
-  target.innerHTML = list.length ? list.map(routeCardHTML).join('') : '<div class="empty-state"><strong>Тохирох маршрут олдсонгүй.</strong><span>Хайлтаа эсвэл шүүлтүүрээ өөрчилж үзээрэй.</span></div>';
+  target.innerHTML = list.length ? list.map((route) => routeCardHTML(route)).join('') : '<div class="empty-state"><strong>Тохирох маршрут олдсонгүй.</strong><span>Хайлтаа эсвэл шүүлтүүрээ өөрчилж үзээрэй.</span></div>';
   bindSaveButtons();
   updateSaveButtons();
 }
@@ -200,9 +214,10 @@ function initHome() {
 document.addEventListener('DOMContentLoaded', async () => {
   initMobileNav();
   initAccount();
+  window.WalkyHikes.subscribe(updateSaveButtons);
   if (document.body.dataset.page === 'home') initHome();
   if (document.body.dataset.page === 'explore') initExplore();
-  if (['home', 'explore'].includes(document.body.dataset.page) && window.WalkyStore?.loadRoutes) {
+  if (['home', 'explore', 'my-hikes', 'detail'].includes(document.body.dataset.page) && window.WalkyStore?.loadRoutes) {
     const remoteRoutes = await window.WalkyStore.loadRoutes();
     if (remoteRoutes?.length) setRoutes(remoteRoutes);
   }

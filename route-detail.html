@@ -10,7 +10,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
 </head>
-<body>
+<body data-page="detail">
 
 <header class="site-header">
   <div class="wrap">
@@ -25,7 +25,7 @@
       <a href="index.html">Нүүр</a>
       <a href="explore.html">Маршрутууд</a>
       <a href="map.html">Газрын зураг</a>
-      <a href="explore.html">Төлөвлөх</a>
+      <a href="my-hikes.html">Миний алхалтууд</a>
     </nav>
   </div>
 </header>
@@ -80,6 +80,10 @@
     </div>
 
     <aside class="detail-side">
+      <div class="detail-card">
+        <button class="save-route" id="detail-save-route" type="button" hidden>♡ Хадгалах</button>
+        <a class="maps-link" href="my-hikes.html">Миний алхалтууд →</a>
+      </div>
       <div class="detail-card quick-panel">
         <div class="card-kicker">Факт</div>
         <ul class="mini-facts">
@@ -119,13 +123,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="firebase-service.js"></script>
+<script src="hikes-store.js"></script>
 <script src="main.js"></script>
 <script>
+  let detailMap = null;
   function renderRouteDetails() {
+    if (detailMap) { detailMap.remove(); detailMap = null; }
+    document.getElementById('map').replaceChildren();
     const allRoutes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
     const params = new URLSearchParams(window.location.search);
     const routeId = params.get('id');
-    const route = routeId ? allRoutes.find((item) => item.id === routeId) || allRoutes[0] || null : allRoutes[0] || null;
+    const route = routeId ? allRoutes.find((item) => item.id === routeId) : allRoutes[0];
+    document.querySelector('.detail-section').hidden = !route;
 
     if (!route) {
       document.getElementById('route-name').textContent = 'Маршрут олдсонгүй';
@@ -137,6 +146,12 @@
     }
 
     document.getElementById('route-name').textContent = route.name;
+    const saveButton = document.getElementById('detail-save-route');
+    saveButton.dataset.routeId = route.id;
+    saveButton.dataset.routeName = route.name;
+    saveButton.hidden = false;
+    bindSaveButtons();
+    updateSaveButtons();
     document.getElementById('route-desc').textContent = route.desc;
     document.getElementById('route-badge').textContent = route.difficulty;
     document.getElementById('route-story').textContent = `${route.desc} Энэ зам нь ${route.distanceKm} км-ийн урттай, ${route.elevationM} м-ийн өгсөлттэй учраас богино хугацаанд сайн адал явдал, амралтын аялал зохион байгуулахад тохиромжтой.`;
@@ -166,7 +181,7 @@
     try {
       if (typeof route.distanceKm === 'number') {
         if (route.distanceKm <= 5) audiences.push('богино хугацааны алхагчид');
-        if (route.distanceKm <= 8 && route.distanceKm > 5) audiences.push('Гэр бүл, анх удаа алхагчид');
+        if (route.distanceKm <= 8 && route.distanceKm > 6) audiences.push('Гэр бүл, анх удаа алхагчид');
         if (route.distanceKm > 8) audiences.push('Туршлагатай алхагчид');
       }
 
@@ -206,24 +221,24 @@
     let safetyText = '';
     switch (route.difficulty) {
       case 'Хялбар':
-        safetyText = 'Зам өргөн, явган алхахад хялбар, анхаарах зүйл бага байна.';
+        safetyText = 'Зам хөнгөн, явган алхахад хялбар, анхаарах зүйл бага байна.';
         break;
       case 'Хөнгөн - Дунд':
-        safetyText = 'Замын налуу дунджаар, цэвэр агаар, сайн бэлтгэлтэй явна.';
+        safetyText = 'Зам бага зэрэг өгсүүр, замд тохирсон бэлтгэлтэй явна.';
         break;
       case 'Дунд':
-        safetyText = 'Налуу болон хадны хэсэгтэй байж болох тул гутал, ус авч явахыг зөвлө.';
+        safetyText = 'Огцом өгсүүр болдог болон хадны асга хэсэгтэй.';
         break;
       case 'Хэцүү':
-        safetyText = 'Уулын эгц хэсэг, цаг агаарын өөрчлөлт ихтэй тул эхний цэгээс бэлэн байгаарай.';
+        safetyText = 'Ганцаараа явахгүй байх, үхэхгүй байх.';
         break;
       default:
         safetyText = 'Маршрутын тодорхойлолт байхгүй.';
     }
     document.getElementById('safety-text').textContent = safetyText;
 
-    if (route.track && route.track.length >= 2) {
-      const map = L.map('map').setView(route.track[0], 13);
+    if (window.L && route.track && route.track.length >= 2) {
+      const map = detailMap = L.map('map').setView(route.track[0], 13);
       L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://opentopomap.org">OpenTopoMap</a>'
       }).addTo(map);
@@ -235,6 +250,8 @@
         '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
     }
   }
+
+  window.addEventListener('routes:updated', renderRouteDetails);
 
   // If routes data is already available use it immediately, otherwise wait for the event
   if (Array.isArray(window.ROUTES) && window.ROUTES.length > 0) {

@@ -25,17 +25,21 @@
       <a href="index.html">Нүүр</a>
       <a href="explore.html">Маршрутууд</a>
       <a href="map.html" class="active">Газрын зураг</a>
-      <a href="explore.html">Төлөвлөх</a>
+      <a href="my-hikes.html">Миний алхалтууд</a>
     </nav>
   </div>
 </header>
 
-<div class="detail-hero">
+<div class="detail-hero map-hero">
   <div class="wrap">
-    <div>
+    <div class="detail-copy">
       <div class="hero-eyebrow">ROUTE MAP</div>
       <h1 id="route-name">Маршрут сонгоно уу</h1>
-      <p id="route-desc" style="color:#121312;max-width:56ch;"></p>
+      <p id="route-desc" class="map-route-description"></p>
+    </div>
+    <div class="map-route-picker">
+      <label for="route-selector">Маршрут сонгох</label>
+      <select id="route-selector"></select>
     </div>
   </div>
 </div>
@@ -78,6 +82,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="firebase-service.js"></script>
+<script src="hikes-store.js"></script>
 <script src="main.js"></script>
 <script>
 // Wait for ROUTES to be loaded from main.js
@@ -86,7 +91,7 @@ let currentRoute = null;
 let baseLayers = {};
 
 function initMap() {
-  if (map) return;
+  if (map || !window.L) return;
 
   map = L.map('map').setView([47.8864, 106.9057], 12);
 
@@ -126,12 +131,16 @@ function initMap() {
 }
 
 function updateRouteUI(route) {
+  const image = /^(https:\/\/|zurag\/)[^\s]+$/i.test(route?.image || '') ? route.image : 'zurag/bogdGorhi.jpg';
+  document.querySelector('.map-hero').style.backgroundImage =
+    `linear-gradient(110deg, rgba(10, 30, 21, .75), rgba(10, 30, 21, .35)), url(${JSON.stringify(image)})`;
+
   if (!route) {
     document.getElementById('route-name').textContent = 'Маршрут олдсонгүй';
     document.getElementById('route-desc').textContent = 'Маршрутын мэдээлэл байхгүй байна.';
     document.getElementById('stat-row').innerHTML = '';
     document.getElementById('safety-text').textContent = 'Маршрут сонгоно уу.';
-    map.setView([47.8864, 106.9057], 12);
+    map?.setView([47.8864, 106.9057], 12);
     return;
   }
 
@@ -161,6 +170,7 @@ function updateRouteUI(route) {
   }
   document.getElementById('safety-text').textContent = safetyText;
 
+  if (!map) return;
   if (route.track && route.track.length >= 2) {
     if (window.currentPolyline) {
       map.removeLayer(window.currentPolyline);
@@ -197,9 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRouteUI(currentRoute);
   }
 
-  const selector = document.createElement('select');
-  selector.id = 'route-selector';
-  selector.style = 'margin: 10px auto; display: block; padding: 8px; font-size: 1rem;';
+  const selector = document.getElementById('route-selector');
   routes.forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.id;
@@ -207,11 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentRoute && r.id === currentRoute.id) opt.selected = true;
     selector.appendChild(opt);
   });
-
-  const heroWrap = document.querySelector('.detail-hero .wrap');
-  if (heroWrap && !document.getElementById('route-selector')) {
-    heroWrap.appendChild(selector);
-  }
 
   selector.addEventListener('change', (e) => {
     const selectedId = e.target.value;
