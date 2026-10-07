@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>walky</title>
-<link rel="stylesheet" href="style.css">
+<title>Жимүүд — walky</title>
+<link rel="stylesheet" href="style.css?v=mongolian-copy-1">
 </head>
 <body data-page="explore">
+<a class="skip-link" href="#main-content">Үндсэн хэсэг рүү очих</a>
 
 <header class="site-header">
   <div class="wrap">
@@ -16,60 +17,38 @@
       </span>
       walky
     </a>
-    <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
-    <nav class="primary-nav">
+    <nav class="primary-nav" aria-label="Үндсэн цэс">
       <a href="index.html">Нүүр</a>
-      <a href="explore.html" class="active">Маршрутууд</a>
+      <a href="explore.html" class="active">Жимүүд</a>
       <a href="map.html">Газрын зураг</a>
       <a href="my-hikes.html">Миний алхалтууд</a>
     </nav>
   </div>
 </header>
 
-<section style="padding-bottom:0;">
-  <div class="wrap">
-    <div class="section-head">
-      <div><p class="eyebrow">Маршрут сонгох</p><h2>Чамд тохирох алхалтаа ол</h2></div>
-      <span class="route-count" id="route-count">5 маршрут</span>
-    </div>
-
-    <div class="explore-hero">
-      <div class="explore-hero-copy">
-        <span class="eyebrow">Өнөөдрийн төлөвлөгөө</span>
-        <h3>Цагаа биш, дурсамжаа тооцоорой.</h3>
-        <p>Богино алхалт, бүтэн өдрийн адал явдал, эсвэл анх удаагийн жим — өөрийн хэмнэлээр сонго.</p>
-      </div>
-      <div class="explore-hero-metrics">
-        <div><strong>5</strong><span>сонгосон маршрут</span></div>
-        <div><strong>3</strong><span>түвшин</span></div>
-        <div><strong>∞</strong><span>гадаах дурсамж</span></div>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <input type="search" id="search-input" placeholder="Нэр, байршлаар хайх..." aria-label="Маршрут хайх">
-      <select id="difficulty-filter">
-        <option value="">Бүх түвшин</option>
-        <option value="Хялбар">Хялбар</option>
-        <option value="Хөнгөн - Дунд">Хөнгөн - Дунд</option>
-        <option value="Дунд">Дунд</option>
-      </select>
-      <select id="duration-filter" aria-label="Хугацаагаар шүүх">
-        <option value="">Хэдэн цаг вэ?</option>
-        <option value="2">2 цагаас бага</option>
-        <option value="4">4 цагаас бага</option>
-        <option value="8">Өдрийн дотор</option>
-      </select>
-    </div>
-
-    <div class="route-grid" id="route-grid"></div>
+<main id="main-content" class="wrap discovery-main">
+  <div class="discovery-heading"><div><p class="eyebrow">АЛХАХ ЖИМҮҮД</p><h1>Алхах жимээ сонгоорой.</h1><p class="page-subtitle">Хэсэгхэн салхинд гарах уу, бүтэн өдрийг ууланд өнгөрөөх үү? Зав зай, бэлтгэлдээ тааруулаад сонгоорой.</p></div><a class="location-link" href="map.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="icons.svg#map"></use></svg>Газрын зураг дээр харах</a></div>
+  <div class="discovery-tools">
+  <label class="trail-search"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="icons.svg#search"></use></svg><span class="sr-only">Жимийн нэр эсвэл байршлаар хайх</span><input type="search" id="search-input" placeholder="Нэр, байршлаар хайх…" autocomplete="off"></label>
+  <div class="quick-filters" aria-label="Жимийн сонголтууд">
+    <button type="button" data-quick-filter="" aria-pressed="true">Бүгд</button>
+    <button type="button" data-quick-filter="short" aria-pressed="false">2 цаг хүртэл</button>
+    <button type="button" data-quick-filter="long" aria-pressed="false">2 цагаас урт</button>
   </div>
-</section>
+  <details class="filter-details"><summary>Нарийвчлан сонгох</summary><div class="filter-options">
+    <label for="difficulty-filter">Хүндрэлийн түвшин<select id="difficulty-filter"><option value="">Бүх түвшин</option><option value="Хялбар">Хялбар</option><option value="Хөнгөн - Дунд">Хөнгөн–дунд</option><option value="Дунд">Дунд</option></select></label>
+    <label for="duration-filter">Алхах хугацаа<select id="duration-filter"><option value="">Бүх хугацаа</option><option value="2">2 цаг хүртэл</option><option value="4">4 цаг хүртэл</option><option value="8">8 цаг хүртэл</option></select></label>
+  </div></details>
+</div>
+  <div class="section-head"><h2>Бүх жим</h2><span id="route-count" class="route-count" role="status">5 жим</span></div>
+  <div class="route-grid" id="route-grid"></div>
+  <p id="save-feedback" class="save-feedback" role="status">Таалагдсан жимээ хадгалаарай. «Миний алхалтууд» хэсэгт харагдана.</p>
+</main>
 
 <footer>
   <div class="wrap">
     <div>walky</div>
-    <div>route + map + community</div>
+    <div>Өөрийн хэмнэлээр алхаарай.</div>
   </div>
 </footer>
 
@@ -79,6 +58,6 @@
 <script src="firebase-config.js"></script>
 <script src="firebase-service.js"></script>
 <script src="hikes-store.js"></script>
-<script src="main.js"></script>
+<script src="main.js?v=mongolian-copy-1"></script>
 </body>
 </html>

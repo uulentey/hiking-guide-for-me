@@ -3,82 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Хадгалсан жим, дараагийн төлөвлөгөө, алхсан маршрутуудаа нэг дороос хараарай.">
+  <meta name="description" content="Явахыг хүссэн жимээ хадгалж, алхсан замаа тэмдэглээрэй.">
   <title>Миний алхалтууд — walky</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=mongolian-copy-1">
 </head>
 <body data-page="my-hikes">
 <a class="skip-link" href="#my-hikes-main">Үндсэн хэсэг рүү очих</a>
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="index.html"><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg></span>walky</a>
-    <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
     <nav class="primary-nav" aria-label="Үндсэн цэс">
-      <a href="index.html">Нүүр</a><a href="explore.html">Маршрутууд</a><a href="map.html">Газрын зураг</a>
+      <a href="index.html">Нүүр</a><a href="explore.html">Жимүүд</a><a href="map.html">Газрын зураг</a>
       <a href="my-hikes.html" class="active" aria-current="page">Миний алхалтууд</a>
     </nav>
   </div>
 </header>
 <main id="my-hikes-main" class="wrap hikes-main">
   <div class="hikes-heading">
-    <div><p class="eyebrow">Таны бяцхан аяллын тэмдэглэл</p><h1>Миний алхалтууд</h1><p>Дараагийн жимээ төлөвлө. Алхсан замаа дурс.</p></div>
-    <a class="btn btn-dark" href="explore.html">Шинэ жим олох <span aria-hidden="true">↗</span></a>
+    <div><p class="eyebrow">АЯЛЛЫН ТӨЛӨВЛӨГӨӨ</p><h1>Миний алхалтууд</h1><p>Явахыг хүссэн жимээ хадгалж, алхсан замаа тэмдэглээрэй.</p></div>
+    <a class="btn btn-dark" href="explore.html">Жимүүдээс сонгох <span aria-hidden="true">↗</span></a>
   </div>
 
-  <div class="hikes-journal">
-    <div class="hikes-journal-copy">
-      <p class="eyebrow">Нэг алхам. Нэг шинэ дурсамж.</p>
-      <h2>Таны дараагийн аялал<br>эндээс эхэлнэ.</h2>
-      <p>Таалагдсан жимээ хадгалаад, явах төлөвлөгөө болон алхсан маршрутуудаа цэгцлээрэй.</p>
-      <dl class="hikes-stats">
-        <div><dt>Хадгалсан</dt><dd id="total-hikes">0</dd></div>
-        <div><dt>Явахаар төлөвлөсөн</dt><dd id="planned-hikes">0</dd></div>
-        <div><dt>Алхсан</dt><dd id="completed-hikes">0</dd></div>
-      </dl>
-    </div>
-    <div class="hikes-journal-photo"><img src="zurag/terelj.jpg" alt="Тэрэлжийн ногоон уулс"><span>Гадаа таныг хүлээж байна.</span></div>
-  </div>
+  <dl class="hikes-stats" aria-label="Алхалтын хураангуй"><div><dt>Нийт жим</dt><dd id="total-hikes">0</dd></div><div><dt>Төлөвлөсөн</dt><dd id="planned-hikes">0</dd></div><div><dt>Алхсан</dt><dd id="completed-hikes">0</dd></div></dl>
 
   <div class="hikes-sync" aria-live="polite">
-    <span class="sync-indicator" aria-hidden="true"></span><p id="hikes-sync-text">Алхалтуудыг ачаалж байна…</p>
+    <span class="sync-indicator" aria-hidden="true"></span><p id="hikes-sync-text">Хадгалсан жимүүдийг тань ачаалж байна…</p>
     <button type="button" class="text-button" id="hikes-sign-in" hidden>Google-ээр нэвтрэх →</button>
     <button type="button" class="text-button" id="hikes-retry" hidden>Дахин оролдох</button>
   </div>
   <div class="guest-import" id="guest-import" hidden>
-    <p>Энэ төхөөрөмж дээр хадгалсан жимүүдээ өөрийн бүртгэлд нэмэх үү?</p>
+    <p>Энэ төхөөрөмж дээр хадгалсан жимүүдээ бүртгэлдээ нэмээрэй. Тэгвэл бусад төхөөрөмжөөсөө ч харж болно.</p>
     <button type="button" class="text-button" id="import-hikes">Бүртгэлд нэмэх</button>
   </div>
 
   <div class="hikes-toolbar">
     <div class="hikes-tabs" role="tablist" aria-label="Алхалтын төлөв">
-      <button id="tab-all" type="button" role="tab" aria-selected="true" aria-controls="hikes-panel" data-filter="all">Хадгалсан <span id="count-all">0</span></button>
-      <button id="tab-planned" type="button" role="tab" aria-selected="false" aria-controls="hikes-panel" tabindex="-1" data-filter="planned">Явахаар төлөвлөсөн <span id="count-planned">0</span></button>
+      <button id="tab-all" type="button" role="tab" aria-selected="true" aria-controls="hikes-panel" data-filter="all">Бүгд <span id="count-all">0</span></button>
+      <button id="tab-planned" type="button" role="tab" aria-selected="false" aria-controls="hikes-panel" tabindex="-1" data-filter="planned">Төлөвлөсөн <span id="count-planned">0</span></button>
       <button id="tab-completed" type="button" role="tab" aria-selected="false" aria-controls="hikes-panel" tabindex="-1" data-filter="completed">Алхсан <span id="count-completed">0</span></button>
     </div>
-    <label class="hikes-search"><span class="sr-only">Миний жимүүдээс хайх</span><span aria-hidden="true">⌕</span><input id="hikes-search" type="search" placeholder="Жимээ хайх…"></label>
+    <label class="hikes-search"><span class="sr-only">Хадгалсан жимүүдээсээ хайх</span><span aria-hidden="true">⌕</span><input id="hikes-search" type="search" placeholder="Хадгалсан жимээ хайх…"></label>
   </div>
   <div id="hikes-panel" role="tabpanel" aria-labelledby="tab-all" tabindex="0">
     <p id="hikes-result-count" class="hikes-result-count" role="status"></p>
     <div id="hikes-grid" class="route-grid" aria-busy="true"></div>
     <div class="hikes-empty" id="hikes-empty" hidden>
-      <span class="empty-hike-icon" aria-hidden="true">♡</span>
-      <h2 id="hikes-empty-title">Анхны жимээ хадгалаарай</h2>
-      <p id="hikes-empty-copy">Маршрутуудаас таалагдсан жимийнхээ ♡ товчийг дараарай. Таны сонголтууд энд харагдана.</p>
-      <a class="btn btn-dark" href="explore.html">Маршрутуудыг үзэх →</a>
+      <span class="empty-hike-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><use href="icons.svg#bookmark"></use></svg></span>
+      <h2 id="hikes-empty-title">Хадгалсан жимүүд энд харагдана</h2>
+      <p id="hikes-empty-copy">Таалагдсан жимийнхээ нэрийн хажуу дахь хадгалах товчийг дараарай.</p>
+      <a class="btn btn-dark" href="explore.html">Жимүүдийг үзэх →</a>
     </div>
   </div>
-  <p class="hikes-footnote">Жижиг төлөвлөгөө ч сайхан аяллын эхлэл болдог.</p>
+  <p class="hikes-footnote">Явахыг хүссэн газраа хадгалаад, завтай үедээ алхаарай.</p>
   <noscript><p>Алхалтуудаа харахын тулд хөтөч дээрээ JavaScript-ийг идэвхжүүлээрэй.</p></noscript>
 </main>
 <div class="hikes-toast" id="hikes-toast" hidden><span role="status" id="hikes-toast-text"></span><button type="button" id="hikes-undo">Буцаах</button></div>
-<footer><div class="wrap"><div>walky</div><div>Өөрийн хэмнэлээр. Өөрийн жимээр.</div></div></footer>
+<footer><div class="wrap"><div>walky</div><div>Өөрийн хэмнэлээр алхаарай.</div></div></footer>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="firebase-service.js"></script>
 <script src="hikes-store.js"></script>
-<script src="main.js"></script>
-<script src="my-hikes.js"></script>
+<script src="main.js?v=mongolian-copy-1"></script>
+<script src="my-hikes.js?v=mongolian-copy-1"></script>
 </body>
 </html>

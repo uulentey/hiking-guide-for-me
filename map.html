@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Маршрутын дэлгэрэнгүй — walky</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Газрын зураг — walky</title>
+  <link rel="stylesheet" href="style.css?v=mongolian-copy-1">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
 </head>
-<body>
+<body data-page="map">
+<a class="skip-link" href="#main-content">Үндсэн хэсэг рүү очих</a>
 
 <header class="site-header">
   <div class="wrap">
@@ -20,57 +21,36 @@
       </span>
       walky
     </a>
-    <button class="nav-toggle" aria-label="Цэс" aria-expanded="false">☰</button>
-    <nav class="primary-nav">
+    <nav class="primary-nav" aria-label="Үндсэн цэс">
       <a href="index.html">Нүүр</a>
-      <a href="explore.html">Маршрутууд</a>
+      <a href="explore.html">Жимүүд</a>
       <a href="map.html" class="active">Газрын зураг</a>
       <a href="my-hikes.html">Миний алхалтууд</a>
     </nav>
   </div>
 </header>
 
-<div class="detail-hero map-hero">
-  <div class="wrap">
-    <div class="detail-copy">
-      <div class="hero-eyebrow">ROUTE MAP</div>
-      <h1 id="route-name">Маршрут сонгоно уу</h1>
-      <p id="route-desc" class="map-route-description"></p>
-    </div>
-    <div class="map-route-picker">
-      <label for="route-selector">Маршрут сонгох</label>
-      <select id="route-selector"></select>
-    </div>
-  </div>
-</div>
-
-<section>
-  <div class="wrap">
+<main id="main-content" class="wrap map-workspace">
+  <aside class="map-sidebar map-hero">
+    <div class="map-intro"><p class="eyebrow">ЖИМЭЭ ЗУРАГ ДЭЭР ХАРААРАЙ</p><h1>Газрын зураг</h1></div>
+    <div class="map-route-picker"><label for="route-selector">Алхах жимээ сонгоорой</label><select id="route-selector"></select></div>
+    <img id="map-preview" class="map-preview" src="zurag/emoSandal.jpg" alt="Сонгосон жимийн зураг">
+    <div class="detail-copy"><h2 id="route-name">Жимээ сонгоорой</h2><p id="route-desc" class="map-route-description"></p></div>
     <div class="stat-row" id="stat-row"></div>
-
-    <div class="map-toolbar">
-      <label for="map-layer-select">Free map:</label>
-      <select id="map-layer-select">
-        <option value="osm">OpenStreetMap</option>
-        <option value="carto-light">Carto Light</option>
-        <option value="carto-dark">Carto Dark</option>
-        <option value="topo">OpenTopoMap</option>
-      </select>
-    </div>
-
-    <div id="map" style="height: 60vh; min-height: 250px; max-height: 500px; margin: 20px 0; border-radius: var(--radius); border: 1px solid var(--line);"></div>
-
-    <div class="safety-note" style="margin-top:28px;">
-      <span>⚠</span>
-      <div><b>Анхаарах зүйлс:</b> <span id="safety-text">Маршрут сонгон анхааруулга үүсгэнэ.</span></div>
-    </div>
-  </div>
-</section>
+    <a id="map-detail-link" class="btn btn-dark" href="explore.html">Жимийн тухай үзэх →</a>
+    <div class="safety-note"><span aria-hidden="true">⚠</span><div><b>Явахаасаа өмнө:</b> <span id="safety-text">Жимээ сонгоод мэдээллийг нь хараарай.</span></div></div>
+  </aside>
+  <section class="map-stage" aria-label="Жимийн газрын зураг">
+    <div class="map-toolbar"><label for="map-layer-select">Харагдац</label><select id="map-layer-select"><option value="osm">Энгийн</option><option value="carto-light">Цайвар</option><option value="carto-dark">Бараан</option><option value="topo">Уул, газрын өндөр</option></select></div>
+    <div id="map"></div>
+    <p id="map-empty" class="map-empty" role="status" hidden>Энэ жимийг газрын зураг дээр харуулж чадсангүй.</p>
+  </section>
+</main>
 
 <footer>
   <div class="wrap">
     <div>walky</div>
-    <div>route database + map + community + planning</div>
+    <div>Өөрийн хэмнэлээр алхаарай.</div>
   </div>
 </footer>
 
@@ -83,7 +63,7 @@
 <script src="firebase-config.js"></script>
 <script src="firebase-service.js"></script>
 <script src="hikes-store.js"></script>
-<script src="main.js"></script>
+<script src="main.js?v=mongolian-copy-1"></script>
 <script>
 // Wait for ROUTES to be loaded from main.js
 let map = null;
@@ -93,7 +73,8 @@ let baseLayers = {};
 function initMap() {
   if (map || !window.L) return;
 
-  map = L.map('map').setView([47.8864, 106.9057], 12);
+  map = L.map('map', { zoomControl: false }).setView([47.8864, 106.9057], 12);
+  L.control.zoom({ zoomInTitle: 'Ойртуулах', zoomOutTitle: 'Холдуулах' }).addTo(map);
 
   baseLayers = {
     osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -132,14 +113,16 @@ function initMap() {
 
 function updateRouteUI(route) {
   const image = /^(https:\/\/|zurag\/)[^\s]+$/i.test(route?.image || '') ? route.image : 'zurag/bogdGorhi.jpg';
-  document.querySelector('.map-hero').style.backgroundImage =
-    `linear-gradient(110deg, rgba(10, 30, 21, .75), rgba(10, 30, 21, .35)), url(${JSON.stringify(image)})`;
+  document.getElementById('map-preview').src = image;
+  document.getElementById('map-preview').alt = route ? `${route.name} — жимийн зураг` : '';
+  document.getElementById('map-detail-link').href = route ? `route-detail.html?id=${encodeURIComponent(route.id)}` : 'explore.html';
+  document.getElementById('map-empty').hidden = Boolean(map && route?.track?.length >= 2);
 
   if (!route) {
-    document.getElementById('route-name').textContent = 'Маршрут олдсонгүй';
-    document.getElementById('route-desc').textContent = 'Маршрутын мэдээлэл байхгүй байна.';
+    document.getElementById('route-name').textContent = 'Энэ жим олдсонгүй';
+    document.getElementById('route-desc').textContent = 'Өөр жим сонгоод дахин үзээрэй.';
     document.getElementById('stat-row').innerHTML = '';
-    document.getElementById('safety-text').textContent = 'Маршрут сонгоно уу.';
+    document.getElementById('safety-text').textContent = 'Жимээ сонгоод мэдээллийг нь хараарай.';
     map?.setView([47.8864, 106.9057], 12);
     return;
   }
@@ -147,26 +130,27 @@ function updateRouteUI(route) {
   document.getElementById('route-name').textContent = route.name;
   document.getElementById('route-desc').textContent = route.desc;
   document.getElementById('stat-row').innerHTML = `
-    <div><b>${route.distanceKm} км</b><span>Зай</span></div>
+    <div><b>${route.distanceKm} км</b><span>Алхах зай</span></div>
     <div><b>${route.elevationM} м</b><span>Өгсөлт</span></div>
-    <div><b>${route.timeHr}</b><span>Цаг</span></div>
+    <div><b>${route.timeHr}</b><span>Хугацаа (цаг)</span></div>
     <div><b>${route.difficulty}</b><span>Түвшин</span></div>
-    <div><b>${route.season}</b><span>Улирал</span></div>
+    <div><b>${route.season}</b><span>Алхах улирал</span></div>
   `;
 
   let safetyText = '';
   switch (route.difficulty) {
     case 'Хялбар':
-      safetyText = 'Зам өргөн, дундаж ши.жээлцтэй.';
+      safetyText = 'Явах өдрийнхөө цаг агаар, замын нөхцөлийг шалгаарай.';
       break;
+    case 'Хөнгөн - Дунд':
     case 'Дунд':
-      safetyText = 'Бороотой үед хальтрах эрсдэлтэй.';
+      safetyText = 'Бороотой үед зам халтирч болзошгүй. Яаралгүй, болгоомжтой алхаарай.';
       break;
     case 'Хэцүү':
-      safetyText = 'Д архи, дээдэн цэгүүдтэй, алдаамжтой.';
+      safetyText = 'Өөрийн бэлтгэлдээ тохируулж, явах замаа урьдчилан төлөвлөөрэй.';
       break;
     default:
-      safetyText = 'Маршрутын тодорхойлолт байхгүй.';
+      safetyText = 'Явах өдрийнхөө цаг агаар, замын нөхцөлийг шалгаарай.';
   }
   document.getElementById('safety-text').textContent = safetyText;
 
@@ -175,7 +159,7 @@ function updateRouteUI(route) {
     if (window.currentPolyline) {
       map.removeLayer(window.currentPolyline);
     }
-    const polyline = L.polyline(route.track, { color: 'green', weight: 5 }).addTo(map);
+    const polyline = L.polyline(route.track, { color: '#235843', weight: 4 }).addTo(map);
     window.currentPolyline = polyline;
     map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
   } else {
@@ -184,8 +168,7 @@ function updateRouteUI(route) {
       window.currentPolyline = null;
     }
     map.setView([47.8864, 106.9057], 12);
-    document.getElementById('map').innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Маршрутын coordinate байхгүй</div>';
+    document.getElementById('map-empty').hidden = false;
   }
 }
 
@@ -194,9 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const routes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
   if (!routes.length) {
-    document.getElementById('route-name').textContent = 'Маршрут боломжгүй';
-    document.getElementById('route-desc').textContent = 'Маршрутын мэдээлэл ачаалагдаагүй байна.';
-    document.getElementById('safety-text').textContent = 'Маршрут сонгоно уу.';
+    document.getElementById('route-name').textContent = 'Жимийн мэдээлэл одоохондоо алга';
+    document.getElementById('route-desc').textContent = 'Хуудсаа дахин нээгээд үзээрэй.';
+    document.getElementById('safety-text').textContent = 'Жимээ сонгоод мэдээллийг нь хараарай.';
     return;
   }
 
