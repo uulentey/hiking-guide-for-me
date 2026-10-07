@@ -159,11 +159,11 @@
     if (route.track && route.track.length > 0) {
       const [lat, lng] = route.track[0];
       mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-      mapsLink.textContent = 'Эхлэх цэгийг харах ↗';
+      mapsLink.textContent = ' Тэмдэглэсэн цэгийг харах ↗';
       mapsLink.removeAttribute('aria-disabled');
     } else {
       mapsLink.removeAttribute('href');
-      mapsLink.textContent = 'Эхлэх цэг нь одоохондоо алга';
+      mapsLink.textContent = 'Тэмдэглэсэн цэг нь одоохондоо алга';
       mapsLink.setAttribute('aria-disabled', 'true');
     }
 
