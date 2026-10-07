@@ -109,7 +109,8 @@
           if (snapshots[index].exists) return;
           transaction.set(references[index], { ...record.fields, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid });
           count++;
-        });
+        });`font
+        `
         return count;
       });
     },
