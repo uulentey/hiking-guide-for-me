@@ -1,8 +1,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.enabled == true;
+    }
+    function shortText(value, maximum) {
+      return value is string && value.size() > 0 && value.size() <= maximum;
+    }
+    function validRoute() {
+      let data = request.resource.data;
+      return shortText(data.name, 160) && shortText(data.area, 160)
+        && shortText(data.image, 2048) && data.image.matches('^(https://|zurag/).*')
+        && data.difficulty in ['Хялбар', 'Хөнгөн - Дунд', 'Дунд', 'Хэцүү']
+        && data.distanceKm is number && data.distanceKm >= 0.1 && data.distanceKm <= 1000
+        && data.elevationM is number && data.elevationM >= 0 && data.elevationM <= 10000
+        && data.durationHours is number && data.durationHours >= 0.1 && data.durationHours <= 720
+        && shortText(data.timeHr, 40) && shortText(data.season, 160)
+        && data.status is string && data.status.size() <= 160
+        && shortText(data.desc, 5000)
+        && data.track is list && data.track.size() <= 2000 && data.track.size() != 1
+        && data.published is bool
+        && data.updatedAt == request.time && data.updatedBy == request.auth.uid;
+    }
+    function validNews() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['title', 'summary', 'body', 'date', 'published', 'createdAt', 'updatedAt', 'updatedBy'])
+        && shortText(data.title, 160) && shortText(data.summary, 400) && shortText(data.body, 12000)
+        && data.date is string && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.published is bool
+        && data.updatedAt == request.time && data.updatedBy == request.auth.uid;
+    }
+    // Membership is provisioned by the project owner in Firebase Console.
+    // Browser users, including admins, cannot grant themselves access.
+    match /admins/{userId} {
+      allow get: if request.auth != null && request.auth.uid == userId;
+      allow list, write: if false;
+    }
     match /routes/{routeId} {
-      allow read: if resource.data.published == true;
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update: if isAdmin() && validRoute();
+      allow delete: if isAdmin();
+    }
+    match /news/{newsId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update: if isAdmin() && validNews();
+      allow delete: if isAdmin();
     }
     match /users/{userId}/savedRoutes/{routeId} {
       allow read: if request.auth != null && request.auth.uid == userId;

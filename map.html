@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Газрын зураг — walky</title>
-  <link rel="stylesheet" href="style.css?v=mongolian-copy-1">
+  <link rel="stylesheet" href="style.css?v=admin-1">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -50,7 +50,7 @@
 <footer>
   <div class="wrap">
     <div>walky</div>
-    <div>Өөрийн хэмнэлээр алхаарай.</div>
+    <div class="footer-links"><span>Өөрийн хэмнэлээр алхаарай.</span><a href="admin.html">Удирдлага</a></div>
   </div>
 </footer>
 
@@ -61,9 +61,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="content-model.js"></script>
 <script src="firebase-service.js"></script>
 <script src="hikes-store.js"></script>
-<script src="main.js?v=mongolian-copy-1"></script>
+<script src="main.js?v=admin-1"></script>
 <script>
 // Wait for ROUTES to be loaded from main.js
 let map = null;
@@ -112,6 +113,10 @@ function initMap() {
 }
 
 function updateRouteUI(route) {
+  if (map && window.currentPolyline) {
+    map.removeLayer(window.currentPolyline);
+    window.currentPolyline = null;
+  }
   const image = /^(https:\/\/|zurag\/)[^\s]+$/i.test(route?.image || '') ? route.image : 'zurag/bogdGorhi.jpg';
   document.getElementById('map-preview').src = image;
   document.getElementById('map-preview').alt = route ? `${route.name} — жимийн зураг` : '';
@@ -130,11 +135,11 @@ function updateRouteUI(route) {
   document.getElementById('route-name').textContent = route.name;
   document.getElementById('route-desc').textContent = route.desc;
   document.getElementById('stat-row').innerHTML = `
-    <div><b>${route.distanceKm} км</b><span>Алхах зай</span></div>
-    <div><b>${route.elevationM} м</b><span>Өгсөлт</span></div>
-    <div><b>${route.timeHr}</b><span>Хугацаа (цаг)</span></div>
-    <div><b>${route.difficulty}</b><span>Түвшин</span></div>
-    <div><b>${route.season}</b><span>Алхах улирал</span></div>
+    <div><b>${escapeHTML(route.distanceKm)} км</b><span>Алхах зай</span></div>
+    <div><b>${escapeHTML(route.elevationM)} м</b><span>Өгсөлт</span></div>
+    <div><b>${escapeHTML(route.timeHr)}</b><span>Хугацаа (цаг)</span></div>
+    <div><b>${escapeHTML(route.difficulty)}</b><span>Түвшин</span></div>
+    <div><b>${escapeHTML(route.season)}</b><span>Алхах улирал</span></div>
   `;
 
   let safetyText = '';
@@ -172,14 +177,14 @@ function updateRouteUI(route) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-
+function renderMapRoutes() {
   const routes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
+  const selector = document.getElementById('route-selector');
+  selector.replaceChildren();
+  selector.disabled = !routes.length;
   if (!routes.length) {
-    document.getElementById('route-name').textContent = 'Жимийн мэдээлэл одоохондоо алга';
-    document.getElementById('route-desc').textContent = 'Хуудсаа дахин нээгээд үзээрэй.';
-    document.getElementById('safety-text').textContent = 'Жимээ сонгоод мэдээллийг нь хараарай.';
+    currentRoute = null;
+    updateRouteUI(null);
     return;
   }
 
@@ -190,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRouteUI(currentRoute);
   }
 
-  const selector = document.getElementById('route-selector');
   routes.forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.id;
@@ -198,14 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentRoute && r.id === currentRoute.id) opt.selected = true;
     selector.appendChild(opt);
   });
+}
 
-  selector.addEventListener('change', (e) => {
+window.addEventListener('routes:updated', renderMapRoutes);
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  renderMapRoutes();
+
+  document.getElementById('route-selector').addEventListener('change', (e) => {
     const selectedId = e.target.value;
-    const route = routes.find(r => r.id === selectedId);
+    const route = window.ROUTES.find(r => r.id === selectedId);
     if (route) {
       currentRoute = route;
       updateRouteUI(route);
-      window.history.replaceState(null, '', `?id=${route.id}`);
+      window.history.replaceState(null, '', `?id=${encodeURIComponent(route.id)}`);
     }
   });
 });

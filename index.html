@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Нүүр — walky</title>
-<link rel="stylesheet" href="style.css?v=mongolian-copy-1">
+<link rel="stylesheet" href="style.css?v=admin-1">
 </head>
 <body data-page="home">
 <a class="skip-link" href="#main-content">Үндсэн хэсэг рүү очих</a>
@@ -44,13 +44,14 @@
   <div class="route-grid" id="route-grid"></div>
   <p id="save-feedback" class="save-feedback" role="status">Таалагдсан жимээ хадгалаарай. «Миний алхалтууд» хэсэгт харагдана.</p>
   <a class="browse-link" href="explore.html">Бүх жимийг үзэх <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="icons.svg#arrow"></use></svg></a>
+  <section class="daily-news" aria-labelledby="news-heading"><p class="eyebrow">АЛХАГЧДАД ХЭРЭГТЭЙ МЭДЭЭЛЭЛ</p><h2 id="news-heading">Өдөр тутмын мэдээ</h2><p id="news-status" class="news-status" role="status">Мэдээг ачаалж байна…</p><button type="button" class="text-button" id="news-retry" hidden>Дахин оролдох</button><div id="news-feed" class="news-feed"></div></section>
   <section class="planning-note"><div><p class="eyebrow">ЯВАХААСАА ӨМНӨ</p><h2>Гарахын өмнө юу бэлдэх вэ?</h2><p>Ус, дулаан хувцас, цэнэгтэй утсаа бэлдээрэй. Явах өдрийнхөө цаг агаарыг бас хараарай.</p></div><a class="btn btn-dark" href="my-hikes.html">Миний алхалтууд →</a></section>
 </main>
 
 <footer>
   <div class="wrap">
     <div>walky</div>
-    <div>Өөрийн хэмнэлээр алхаарай.</div>
+    <div class="footer-links"><span>Өөрийн хэмнэлээр алхаарай.</span><a href="admin.html">Удирдлага</a></div>
   </div>
 </footer>
 
@@ -58,8 +59,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="content-model.js"></script>
 <script src="firebase-service.js"></script>
 <script src="hikes-store.js"></script>
-<script src="main.js?v=mongolian-copy-1"></script>
+<script src="main.js?v=admin-1"></script>
 </body>
 </html>

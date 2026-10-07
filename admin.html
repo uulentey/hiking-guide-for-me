@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Удирдлага — walky</title>
+  <link rel="stylesheet" href="style.css?v=admin-1">
+</head>
+<body data-page="admin">
+<a class="skip-link" href="#main-content">Үндсэн хэсэг рүү очих</a>
+<header class="site-header"><div class="wrap">
+  <a class="brand" href="index.html"><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="2,20 8,8 12,14 16,4 22,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg></span>walky</a>
+  <nav class="primary-nav" aria-label="Үндсэн цэс"><a href="index.html">Нүүр</a><a href="explore.html">Жимүүд</a><a href="map.html">Газрын зураг</a><a href="my-hikes.html">Миний алхалтууд</a></nav>
+</div></header>
+
+<main id="main-content" class="wrap admin-main">
+  <div class="admin-heading"><div><p class="eyebrow">WALKY · УДИРДЛАГА</p><h1>Мэдээллээ удирдах</h1><p class="page-subtitle">Жимүүдээ шинэчилж, өдөр тутмын мэдээгээ нийтлээрэй.</p></div><a class="browse-link" href="index.html">Сайтыг харах →</a></div>
+  <section id="admin-gate" class="admin-gate" aria-labelledby="gate-title">
+    <p class="eyebrow">АДМИН ЭРХ</p><h2 id="gate-title">Эрхийг шалгаж байна…</h2>
+    <p id="gate-message" role="status">Түр хүлээнэ үү.</p>
+    <button class="btn btn-dark" type="button" id="admin-sign-in" hidden>Google-ээр нэвтрэх</button>
+    <button class="btn" type="button" id="access-retry" hidden>Эрхийг дахин шалгах</button>
+  </section>
+
+  <section id="admin-workspace" aria-label="Мэдээлэл удирдах" hidden>
+    <nav class="admin-tabs" aria-label="Удирдах мэдээлэл">
+      <button type="button" data-collection="routes" aria-pressed="true">Жимүүд <span id="admin-route-count">0</span></button>
+      <button type="button" data-collection="news" aria-pressed="false">Өдөр тутмын мэдээ <span id="admin-news-count">0</span></button>
+    </nav>
+    <div class="admin-toolbar">
+      <label class="trail-search"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="icons.svg#search"></use></svg><span class="sr-only">Мэдээлэл хайх</span><input id="admin-search" type="search" placeholder="Нэр, байршлаар хайх…"></label>
+      <label class="admin-filter"><span class="sr-only">Нийтлэх төлөвөөр шүүх</span><select id="admin-status"><option value="all">Бүх төлөв</option><option value="published">Нийтэлсэн</option><option value="draft">Ноорог</option></select></label>
+      <button type="button" class="btn btn-dark" id="add-content">+ Жим нэмэх</button>
+    </div>
+    <p id="admin-message" class="admin-message" role="status" aria-live="polite"></p>
+    <div id="admin-error" class="admin-error" role="alert" hidden><p id="admin-error-text"></p><button type="button" class="text-button" id="content-retry">Дахин ачаалах</button></div>
+    <div class="section-head"><h2 id="admin-list-heading">Бүх жим</h2><span class="route-count" id="admin-result-count"></span></div>
+    <ul class="admin-list" id="admin-list" aria-labelledby="admin-list-heading"></ul>
+    <div class="admin-import" id="admin-import" hidden><div><strong>Сайтын анхны жимүүдийг оруулах</strong><p>Бэлэн 5 жимээс санд байхгүй жимүүдийг нэмнэ.</p></div><button type="button" class="btn" id="import-routes">Анхны жимүүдийг нэмэх</button></div>
+    <p class="admin-footnote">Ноорог мэдээлэл зөвхөн админд харагдана. Нийтэлсэн мэдээлэл сайтад харагдана.</p>
+  </section>
+</main>
+
+<dialog class="admin-dialog" id="editor-dialog" aria-labelledby="editor-title">
+  <div class="admin-dialog-head"><div><p class="eyebrow" id="editor-kind">ЖИМ</p><h2 id="editor-title">Жим нэмэх</h2></div><button type="button" class="dialog-close" id="editor-close" aria-label="Цонх хаах">×</button></div>
+  <form id="content-form">
+    <fieldset id="content-fields" class="admin-fields">
+      <div id="route-fields" class="admin-form-grid">
+        <label class="full-width">Жимийн нэр<input name="name" required maxlength="160" placeholder="Жишээ: Манзуширын жим"></label>
+        <label>Байршил<input name="area" required maxlength="160" placeholder="Богд хан уул"></label>
+        <label>Хүндрэлийн түвшин<select name="difficulty"><option>Хялбар</option><option>Хөнгөн - Дунд</option><option>Дунд</option><option>Хэцүү</option></select></label>
+        <label class="full-width">Нүүр зургийн хаяг<input name="image" required maxlength="2048" placeholder="https://… эсвэл zurag/…"><span class="field-help">HTTPS зургийн холбоос эсвэл сайтын zurag/ хавтас дахь зураг.</span></label>
+        <label>Алхах зай (км)<input name="distanceKm" type="number" required min="0.1" max="1000" step="any" inputmode="decimal"></label>
+        <label>Өгсөлт (м)<input name="elevationM" type="number" required min="0" max="10000" step="any" inputmode="decimal"></label>
+        <label>Хугацаа (цаг)<input name="timeHr" required maxlength="40" placeholder="Жишээ: 1.5–2"></label>
+        <label>Хамгийн их хугацаа (цаг)<input name="durationHours" type="number" required min="0.1" max="720" step="any" inputmode="decimal"><span class="field-help">Жимийн хайлтын хугацааны шүүлтүүрт ашиглана.</span></label>
+        <label>Алхах улирал<input name="season" required maxlength="160" placeholder="Жилийн турш"></label>
+        <label>Товч тэмдэглэл<input name="status" maxlength="160" placeholder="Жишээ: Гэр бүлээрээ явахад"></label>
+        <label class="full-width">Жимийн тайлбар<textarea name="desc" rows="4" required maxlength="5000"></textarea></label>
+        <label class="full-width">Газрын зургийн координатууд<textarea name="track" rows="4" placeholder="47.838254, 106.890664&#10;47.861016, 106.903578" spellcheck="false"></textarea><span class="field-help">Цэг бүрийг өргөрөг, уртраг гэж тусдаа мөрөнд бичнэ. Хоосон үлдээж болно; жим зурахын тулд дор хаяж 2 цэг хэрэгтэй.</span></label>
+      </div>
+      <div id="news-fields" class="admin-form-grid" hidden>
+        <label class="full-width">Мэдээний гарчиг<input name="title" required maxlength="160" placeholder="Алхагчдад хүргэх шинэ мэдээлэл"></label>
+        <label>Мэдээний огноо<input name="date" type="date" required></label>
+        <label class="full-width">Товч агуулга<textarea name="summary" rows="3" required maxlength="400"></textarea><span class="field-help">Нүүр хуудсанд харагдах товч агуулга.</span></label>
+        <label class="full-width">Дэлгэрэнгүй мэдээ<textarea name="body" rows="7" required maxlength="12000"></textarea></label>
+      </div>
+      <label class="publish-choice"><input name="published" type="checkbox"><span><strong>Сайтад нийтлэх</strong><span>Сонгоогүй бол ноорог хэлбэрээр хадгална.</span></span></label>
+    </fieldset>
+    <p class="form-error" id="form-error" role="alert" hidden></p>
+    <div class="admin-dialog-actions"><button type="button" class="btn" id="editor-cancel">Болих</button><button type="submit" class="btn btn-dark" id="save-content">Хадгалах</button></div>
+  </form>
+</dialog>
+
+<dialog class="admin-dialog delete-dialog" id="delete-dialog" aria-labelledby="delete-title">
+  <p class="eyebrow">УСТГАХ</p><h2 id="delete-title">Мэдээллийг устгах уу?</h2>
+  <p id="delete-description"></p><p class="field-help">Устгасан мэдээлэл сайтаас хасагдана. Энэ үйлдлийг буцаах боломжгүй.</p>
+  <p class="form-error" id="delete-error" role="alert" hidden></p>
+  <div class="admin-dialog-actions"><button type="button" class="btn" id="delete-cancel">Болих</button><button type="button" class="btn btn-danger" id="delete-confirm">Устгах</button></div>
+</dialog>
+
+<footer><div class="wrap"><div>walky</div><div class="footer-links"><span>Өөрийн хэмнэлээр алхаарай.</span><a href="admin.html">Удирдлага</a></div></div></footer>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="content-model.js"></script>
+<script src="firebase-service.js"></script>
+<script src="hikes-store.js"></script>
+<script src="main.js?v=admin-1"></script>
+<script src="admin.js"></script>
+</body>
+</html>

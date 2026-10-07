@@ -7,16 +7,14 @@ const FALLBACK_ROUTES = [
   { id: 'tenger-rock', name: 'Тэнгэр хад', image: 'zurag/tengerHad.jpg', area: 'Богд хан уул', difficulty: 'Дунд', distanceKm: 8, elevationM: 300, timeHr: '3–4', durationHours: 4, season: 'Жилийн турш', status: 'Өдрөө гаргаад алхахад', desc: 'Ой мод, хадтай хэсгээр дайрч алхах арай урт жим. Яаралгүй алхаж, замдаа амрах цаг гаргаарай.', track: [[47.92,106.92],[47.93,106.93],[47.94,106.94]] }
 ];
 
-// Keep the edited Mongolian descriptions consistent when cloud routes load.
-const ROUTE_DESCRIPTIONS = new Map(FALLBACK_ROUTES.map(({ id, desc }) => [id, desc]));
+window.WALKY_DEFAULT_ROUTES = FALLBACK_ROUTES;
 let ROUTES = [...FALLBACK_ROUTES];
 window.ROUTES = ROUTES;
 
 function setRoutes(routes) {
-  if (!Array.isArray(routes) || !routes.length) return;
+  if (!Array.isArray(routes)) return;
   ROUTES = routes.map((route) => ({
     ...route,
-    desc: ROUTE_DESCRIPTIONS.get(route.id) || route.desc,
     durationHours: route.durationHours || Number.parseFloat(route.timeHr) || 2,
     // Firestore arrays cannot contain arrays; cloud tracks use coordinate maps.
     track: Array.isArray(route.track) ? route.track.map((point) => Array.isArray(point) ? point : [point?.latitude, point?.longitude])
@@ -67,6 +65,7 @@ function initAccount() {
       <div class="profile-menu" id="profile-menu" hidden>
         <div class="profile-summary"><strong id="profile-menu-name"></strong><span id="profile-email"></span></div>
         <a href="my-hikes.html" class="profile-saved-link">Миний алхалтууд</a>
+        <a href="admin.html" id="profile-admin-link" hidden>Удирдлага</a>
         <button type="button" id="sign-out-button">Гарах</button>
       </div>
     </div>
@@ -87,6 +86,8 @@ function initAccount() {
     const isSignedInWithGoogle = Boolean(user && !user.isAnonymous);
     signInButton.hidden = isSignedInWithGoogle;
     profileWrap.hidden = !isSignedInWithGoogle;
+    profileMenu.hidden = true;
+    profileButton.setAttribute('aria-expanded', 'false');
     if (!isSignedInWithGoogle) return;
     const displayName = user.displayName || user.email?.split('@')[0] || 'Алхагч';
     account.querySelector('#profile-name').textContent = displayName;
@@ -129,6 +130,9 @@ function initAccount() {
     if (!account.contains(event.target)) { profileMenu.hidden = true; profileButton.setAttribute('aria-expanded', 'false'); }
   });
   window.WalkyStore?.onAuthStateChanged?.(render);
+  window.WalkyStore?.onAdminStateChanged?.(state => {
+    account.querySelector('#profile-admin-link').hidden = !state.isAdmin;
+  });
 }
 
 function formatDifficulty(difficulty) {
@@ -199,7 +203,9 @@ function bindSaveButtons() {
 function renderRoutes(list = ROUTES, targetSelector = '#route-grid') {
   const target = document.querySelector(targetSelector);
   if (!target) return;
-  target.innerHTML = list.length ? list.map((route) => routeCardHTML(route)).join('') : '<div class="empty-state"><strong>Хайсан жим олдсонгүй.</strong><span>Өөр нэрээр хайх эсвэл сонгосон нөхцөлөө өөрчлөөд үзээрэй.</span><button class="text-button" type="button" data-reset-filters>Бүх жимийг харах</button></div>';
+  target.innerHTML = list.length ? list.map((route) => routeCardHTML(route)).join('') : ROUTES.length
+    ? '<div class="empty-state"><strong>Хайсан жим олдсонгүй.</strong><span>Өөр нэрээр хайх эсвэл сонгосон нөхцөлөө өөрчлөөд үзээрэй.</span><button class="text-button" type="button" data-reset-filters>Бүх жимийг харах</button></div>'
+    : '<div class="empty-state"><strong>Нийтэлсэн жим одоогоор алга.</strong><span>Шинэ жимүүд удахгүй нэмэгдэнэ.</span></div>';
   bindSaveButtons();
   updateSaveButtons();
 }
@@ -249,7 +255,36 @@ function initExplore() {
 
 function initHome() {
   initExplore();
+  loadDailyNews();
 }
+
+async function loadDailyNews() {
+  const feed = document.querySelector('#news-feed');
+  const status = document.querySelector('#news-status');
+  const retry = document.querySelector('#news-retry');
+  if (!feed) return;
+  retry.hidden = true;
+  feed.replaceChildren();
+  status.textContent = 'Мэдээг ачаалж байна…';
+  try {
+    const news = await window.WalkyStore.loadNews();
+    feed.innerHTML = news.slice(0, 6).map(item => {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') && Number.isFinite(Date.parse(`${item.date}T00:00:00Z`)) ? item.date : '';
+      const [year, month, day] = date.split('-');
+      return `<article class="news-item">
+        <time datetime="${date}">${date ? `${year} оны ${Number(month)}-р сарын ${Number(day)}` : 'Мэдээ'}</time>
+        <h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.summary)}</p>
+        <details><summary>Дэлгэрэнгүй унших</summary><div class="news-body">${escapeHTML(item.body)}</div></details>
+      </article>`;
+    }).join('');
+    status.textContent = news.length ? '' : 'Одоогоор нийтэлсэн мэдээ алга. Шинэ мэдээлэл энд харагдана.';
+  } catch (_) {
+    status.textContent = 'Мэдээг ачаалж чадсангүй. Дахин оролдоорой.';
+    retry.hidden = false;
+  }
+}
+
+document.querySelector('#news-retry')?.addEventListener('click', loadDailyNews);
 
 document.addEventListener('DOMContentLoaded', async () => {
   initMobileNav();
@@ -257,8 +292,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.WalkyHikes.subscribe(updateSaveButtons);
   if (document.body.dataset.page === 'home') initHome();
   if (document.body.dataset.page === 'explore') initExplore();
-  if (['home', 'explore', 'my-hikes', 'detail'].includes(document.body.dataset.page) && window.WalkyStore?.loadRoutes) {
+  if (['home', 'explore', 'my-hikes', 'detail', 'map'].includes(document.body.dataset.page) && window.WalkyStore?.loadRoutes) {
     const remoteRoutes = await window.WalkyStore.loadRoutes();
-    if (remoteRoutes?.length) setRoutes(remoteRoutes);
+    if (Array.isArray(remoteRoutes)) setRoutes(remoteRoutes);
   }
 });
