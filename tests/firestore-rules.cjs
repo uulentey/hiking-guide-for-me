@@ -63,6 +63,9 @@ const route = { name: 'Жим', area: 'Богд', image: 'zurag/bogdGorhi.jpg', 
 
   await expectStatus(write('routes/valid', route, 'admin'), 200, 'Admin creates route');
   await expectStatus(write('routes/valid', { ...route, desc: 'Шинэ тайлбар' }, 'admin'), 200, 'Admin edits route');
+  await expectStatus(write('routes/valid', { ...route, preparationTitle: 'Бэлтгэл', preparation: ['Ус', 'Цув'], audienceTitle: 'Тохирох алхагчид', audience: ['Гэр бүлээрээ'] }, 'admin'), 200, 'Admin edits route guidance');
+  await expectStatus(write('routes/invalid-guidance', { ...route, preparation: 'not-a-list' }, 'admin'), 403, 'Invalid checklist rejected');
+  await expectStatus(write('routes/invalid-guidance-limit', { ...route, audience: Array(21).fill('Нэг мөр') }, 'admin'), 403, 'Oversized audience list rejected');
   await expectStatus(read('routes/valid'), 200, 'Published route public');
   await expectStatus(write('routes/invalid', { ...route, distanceKm: -4 }, 'admin'), 403, 'Invalid route rejected');
   await expectStatus(write('news/invalid', { ...news, title: '' }, 'admin'), 403, 'Invalid news rejected');

@@ -25,6 +25,21 @@ Open `admin.html`, or use **Удирдлага** in the footer. Approved admins 
 5. If the routes collection is empty, use **Анхны жимүүдийг нэмэх** to import the site's five bundled routes. This action only adds missing IDs; it preserves existing edits. Then create or edit routes with **Жим нэмэх** and **Засах**.
 6. Use **Өдөр тутмын мэдээ** to create, edit or delete news. Published news appears on the home page, newest date first, with the latest six items and expandable full text.
 
+### Editable route detail sections and image uploads
+
+In the route editor, **АЛХАХААСАА ӨМНӨ** lets admins change the preparation heading and checklist. **ХЭНД ТОХИРОХ ВЭ?** lets them change the audience heading and entries. Write one item per line, with at most 20 items of 200 characters each. Empty lists hide that section. Existing routes without these fields retain the original checklist and suggested audiences until edited.
+
+Select **Нүүр зураг оруулах** to upload a JPG, PNG or WebP image up to 5 MiB. The editor shows a preview and uploads only after clicking Save and passing route validation. Upload failures retain the form; retrying a failed route save in the same editor reuses the completed image upload. A cover upload preserves existing gallery photos. Photos are public website assets even while the route is a draft.
+
+To enable uploads:
+
+1. Enable **Storage** in the Firebase Console for the same project. Confirm the bucket name matches `storageBucket` in `firebase-config.js`.
+2. Publish [storage.rules](storage.rules) under **Storage → Rules**. The rules allow only enabled admins to upload supported images to their own `route-images/{uid}/` folder.
+3. When Firebase prompts for permission to let Storage rules read Firestore admin membership, enable that connection. See Firebase's [cross-service rules documentation](https://firebase.google.com/docs/storage/security/rules-conditions).
+4. Publish the updated [firestore.rules](firestore.rules) as well, so editable route detail fields are validated.
+
+The route-detail page now includes **Миний алхалтууд** and a **Төлөвлөх** button. Clicking it saves the route as `planned`; the button changes to **Төлөвлөсөн**. Clicking it again restores `saved` status. Completed hikes retain their completion status. Guests keep plans on the device; signed-in hikers use the existing account sync and retry flow.
+
 Both forms save drafts by default. Check **Сайтад нийтлэх** to publish, or uncheck it to remove content from public pages while retaining the draft. News dates label and sort posts; they do not schedule future publication. Route edits preserve existing photo gallery metadata. Coordinates use one `latitude, longitude` pair per line and are saved as Firestore maps. Leaving coordinates empty creates a route without a drawn map.
 
 Deleting content requires confirmation. Existing saved hikes keep their route IDs; a deleted/unpublished route appears as unavailable in My hikes. Public route pages, including the map, use the published collection even when it is empty, so deleting the last route does not bring bundled routes back. Bundled routes remain a fallback when Firebase is unavailable.
@@ -37,7 +52,9 @@ This follows Firebase's document-based [role access guidance](https://firebase.g
 
 ## Checks
 
-Run the regression checks with `node --test --test-isolation=none tests/*.test.cjs`. Admin adapter tests use a fake Firebase instance, and the saved-hike tests use a fake cloud adapter; they do not write to the live project. For a local browser check, `tests/admin-browser.cjs` accepts `WALKY_BASE_URL` and uses intercepted Firebase fixtures. It requires Playwright installed and a local HTTP server serving this folder. Browser tests intercept all Firebase SDK requests and use test-only fixtures.
+Run the regression checks with `node --test --test-isolation=none tests/*.test.cjs`. Admin adapter tests use a fake Firebase instance, and the saved-hike tests use a fake cloud adapter; they do not write to the live project. For a local browser check, `tests/admin-browser.cjs` and `tests/route-editor-browser.cjs` accept `WALKY_BASE_URL` and uses intercepted Firebase fixtures. It requires Playwright installed and a local HTTP server serving this folder. Browser tests intercept all Firebase SDK requests and use test-only fixtures.
+
+To check the Storage rules, download Firebase's official `cloud-storage-rules-runtime` JAR and run `node tests/storage-rules.cjs /path/to/runtime.jar`. It compiles the real `storage.rules` and evaluates upload, read, delete, format, size, owner-folder, and revoked-membership cases with local admin-document fixtures.
 
 To verify the actual database rules, run the official Firestore emulator with `firestore.rules`, host `127.0.0.1`, port `8088`, and project ID `demo-walky-admin`, then run `node tests/firestore-rules.cjs`. That script is hardcoded to the local demo emulator and checks admin CRUD, published queries, draft privacy, role revocation, prevention of self-promotion, and saved-hike ownership. It never uses the site's live configuration.
 

@@ -7,6 +7,8 @@
   });
   let db = null;
   let auth = null;
+  let storage = null;
+  const uploads = new Set();
   let access = { ready: false, user: null, isAdmin: false, error: null };
   let accessVersion = 0;
   const accessListeners = new Set();
@@ -15,6 +17,7 @@
     accessListeners.forEach(callback => callback({ ...access }));
   };
   async function checkAdmin(user) {
+    uploads.forEach(task => task.cancel());
     const version = ++accessVersion;
     reportAccess({ ready: false, user, isAdmin: false, error: null });
     if (!db || !user || user.isAnonymous) {
@@ -56,8 +59,32 @@
   }
   if (auth) auth.onAuthStateChanged(checkAdmin);
   else reportAccess({ ready: true, user: null, isAdmin: false, error: null });
+  if (db && config.storageBucket && window.firebase.storage) {
+    try { storage = firebase.storage(); }
+    catch (error) { console.warn('[walky] Image uploads are unavailable.', error); }
+  }
   window.WalkyStore = {
     configured: Boolean(db),
+    uploadsConfigured: Boolean(storage),
+    async uploadRouteImage(file, onProgress = () => {}) {
+      const uid = requireAdmin('routes');
+      window.WalkyContent.imageFile(file);
+      if (!storage) throw Object.assign(new Error('Image storage is not configured.'), { code: 'storage/not-configured' });
+      const suffix = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
+      const path = `route-images/${uid}/${window.crypto.randomUUID()}.${suffix}`;
+      const reference = storage.ref(path);
+      const task = reference.put(file, { contentType: file.type });
+      uploads.add(task);
+      try {
+        await new Promise((resolve, reject) => task.on('state_changed', snapshot => {
+          onProgress(Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100));
+        }, reject, resolve));
+        if (requireAdmin('routes') !== uid) throw new Error('Account changed.');
+        const url = await reference.getDownloadURL();
+        if (requireAdmin('routes') !== uid) throw new Error('Account changed.');
+        return { url, path };
+      } finally { uploads.delete(task); }
+    },
     async loadRoutes() {
       if (!db) return null;
       try { const snapshot = await db.collection('routes').where('published', '==', true).get(); return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })); }
@@ -109,8 +136,7 @@
           if (snapshots[index].exists) return;
           transaction.set(references[index], { ...record.fields, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: uid });
           count++;
-        });`font
-        `
+        });
         return count;
       });
     },

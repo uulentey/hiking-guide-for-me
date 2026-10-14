@@ -6,6 +6,8 @@
   let user = JSON.parse(localStorage.getItem(userKey) || 'null');
   let nextId = 0;
   const observers = new Set();
+  const uploaded = [];
+  let uploadFailure = null;
   const writes = () => localStorage.setItem(contentKey, JSON.stringify(content));
   const snapshot = path => ({ id: path.split('/').at(-1), exists: path in content, data: () => content[path] });
   const authorized = () => user && content[`admins/${user.uid}`]?.enabled === true;
@@ -62,11 +64,37 @@
   firestore.FieldValue = { serverTimestamp: () => new Date().toISOString() };
   const firebaseAuth = () => auth;
   firebaseAuth.GoogleAuthProvider = class { setCustomParameters() {} };
-  window.firebase = { apps: [{}], firestore, auth: firebaseAuth };
+  const storage = {
+    ref(path) {
+      return {
+        put(file, metadata) {
+          let canceled = false;
+          return {
+            cancel() { canceled = true; },
+            on(event, progress, error, success) {
+              progress({ bytesTransferred: 0, totalBytes: file.size });
+              setTimeout(() => {
+                if (canceled) { error({ code: 'storage/canceled' }); return; }
+                if (uploadFailure) { error(uploadFailure); return; }
+                if (!authorized()) { error({ code: 'storage/unauthorized' }); return; }
+                uploaded.push({ path, name: file.name, metadata });
+                progress({ bytesTransferred: file.size, totalBytes: file.size });
+                success();
+              }, 30);
+            }
+          };
+        },
+        async getDownloadURL() { return `https://walky-test-images.example/${path}`; }
+      };
+    }
+  };
+  window.firebase = { apps: [{}], firestore, auth: firebaseAuth, storage: () => storage };
   window.__walkyTest = {
     setUser,
     seed(data) { content = { ...content, ...data }; writes(); },
     getContent() { return content; },
+    getUploads() { return uploaded; },
+    failUploads(error) { uploadFailure = error; },
     clearContent() { content = { 'admins/admin': { enabled: true } }; writes(); }
   };
 })();

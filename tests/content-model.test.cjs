@@ -42,3 +42,15 @@ test('news requires valid calendar dates, content and an explicit publication ch
   assert.throws(() => content.news({ ...news, title: ' ' }), { code: 'content/invalid' });
   assert.throws(() => content.news({ ...news, body: 'a'.repeat(12001) }), { code: 'content/invalid' });
 });
+
+test('editable detail sections trim lines and allow intentionally empty content', () => {
+  const result = content.route({ ...route, preparationTitle: ' Бэлтгэл ', preparation: ' Ус \n\n Дулаан хувцас ', audienceTitle: 'Хэнд', audience: [' Гэр бүлээрээ '] });
+  assert.equal(result.preparationTitle, 'Бэлтгэл');
+  assert.deepEqual(result.preparation, ['Ус', 'Дулаан хувцас']);
+  assert.deepEqual(result.audience, ['Гэр бүлээрээ']);
+  assert.deepEqual(content.route({ ...route, preparation: '', audience: '' }).preparation, []);
+  for (const audience of [Array(21).fill('Нэг мөр'), ['a'.repeat(201)], [{}]]) {
+    assert.throws(() => content.route({ ...route, audience }), { code: 'content/invalid' });
+  }
+  assert.equal(Object.hasOwn(content.route(route), 'preparation'), false);
+});

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Жимийн тухай — walky</title>
-  <link rel="stylesheet" href="style.css?v=admin-1">
+  <link rel="stylesheet" href="style.css?v=route-editor-2">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -49,16 +49,17 @@
   <div class="detail-heading"><div class="detail-copy"><p class="eyebrow" id="route-area">ЖИМИЙН ТУХАЙ</p><h1 id="route-name">—</h1><p id="route-desc"></p></div><div class="detail-badge"><span>Хүндрэлийн түвшин</span><strong id="route-badge">—</strong></div></div>
   <section class="detail-section">
     <div class="stat-row" id="stat-row"></div>
-    <div class="detail-actions"><button class="save-route" id="detail-save-route" type="button" hidden>Хадгалах</button><a id="google-maps-link" class="btn btn-dark" href="#" target="_blank" rel="noopener noreferrer">Тэмдэглэсэн цэгийг харах ↗</a></div>
+    <div class="detail-actions"><button class="save-route" id="detail-save-route" type="button" hidden>Хадгалах</button><button class="btn detail-plan-button" id="detail-plan-route" type="button" aria-pressed="false" disabled>Төлөвлөх</button><a class="btn detail-hikes-link" href="my-hikes.html">Миний алхалтууд →</a><a id="google-maps-link" class="btn btn-dark" href="#" target="_blank" rel="noopener noreferrer">Тэмдэглэсэн цэгийг харах ↗</a></div>
+    <p id="detail-hike-state" class="detail-hike-state" role="status"></p>
     <p id="save-feedback" class="save-feedback" role="status"></p>
     <div class="detail-shell">
       <div class="detail-main">
         <div class="map-card"><div id="map"></div></div>
         <div class="detail-card detail-story"><p class="card-kicker">Жимийн тухай</p><h2>Энэ жимээр алхахад</h2><p id="route-story"></p></div>
-        <div class="detail-card audience-card"><p class="card-kicker">Хэнд тохирох вэ?</p><h2>Өөрийн бэлтгэлдээ тааруулаарай</h2><ul id="route-audience" class="audience-list"></ul></div>
+        <div class="detail-card audience-card" id="audience-section"><p class="card-kicker">Хэнд тохирох вэ?</p><h2 id="audience-title">Өөрийн бэлтгэлдээ тааруулаарай</h2><ul id="route-audience" class="audience-list"></ul></div>
         <div class="safety-note"><span aria-hidden="true">⚠</span><div><b>Явахдаа анхаараарай:</b> <span id="safety-text"></span></div></div>
       </div>
-      <aside class="detail-side"><div class="detail-card quick-panel"><p class="card-kicker">АЛХАХААСАА ӨМНӨ</p><h2>Эдгээрийг аваарай</h2><div class="check-list"><span>✓ Ундны ус</span><span>✓ Хөлд эвтэйхэн гутал</span><span>✓ Дулаан хувцас</span><span>✓ Цэнэгтэй утас</span><span>✓ Өөрт хэрэгтэй эм</span></div><a class="browse-link" href="my-hikes.html">Миний алхалтууд →</a></div></aside>
+      <aside class="detail-side" id="preparation-section"><div class="detail-card quick-panel"><p class="card-kicker">АЛХАХААСАА ӨМНӨ</p><h2 id="preparation-title">Эдгээрийг аваарай</h2><div class="check-list" id="route-preparation"></div><a class="browse-link" href="my-hikes.html">Миний алхалтууд →</a></div></aside>
     </div>
   </section>
 </main>
@@ -77,144 +78,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="content-model.js"></script>
-<script src="firebase-service.js"></script>
+<script src="content-model.js?v=route-editor-2"></script>
+<script src="firebase-service.js?v=route-editor-2"></script>
 <script src="hikes-store.js"></script>
 <script src="main.js?v=admin-1"></script>
 <script src="route-gallery.js?v=route-gallery-1"></script>
-<script>
-  let detailMap = null;
-  function renderRouteDetails() {
-    if (detailMap) { detailMap.remove(); detailMap = null; }
-    document.getElementById('map').replaceChildren();
-    const allRoutes = Array.isArray(window.ROUTES) ? window.ROUTES : [];
-    const params = new URLSearchParams(window.location.search);
-    const routeId = params.get('id');
-    const route = routeId ? allRoutes.find((item) => item.id === routeId) : allRoutes[0];
-    document.querySelector('.detail-section').hidden = !route;
-    renderRouteGallery(route);
-
-    if (!route) {
-      document.getElementById('detail-save-route').hidden = true;
-      document.getElementById('route-name').textContent = 'Энэ жим олдсонгүй';
-      document.getElementById('route-desc').textContent = 'Жимүүдийн жагсаалт руу буцаад дахин сонгоорой.';
-      document.getElementById('route-story').textContent = 'Жимийн мэдээллийг харуулж чадсангүй.';
-      document.getElementById('route-badge').textContent = 'Мэдээлэлгүй';
-      document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Жимийн мэдээлэл одоохондоо алга</div>';
-      return;
-    }
-
-    document.getElementById('route-name').textContent = route.name;
-    const saveButton = document.getElementById('detail-save-route');
-    saveButton.dataset.routeId = route.id;
-    saveButton.dataset.routeName = route.name;
-    saveButton.hidden = false;
-    bindSaveButtons();
-    updateSaveButtons();
-    document.getElementById('route-desc').textContent = route.desc;
-    document.getElementById('route-badge').textContent = route.difficulty;
-    document.getElementById('route-story').textContent = route.desc;
-    document.getElementById('route-area').textContent = route.area || 'Улаанбаатар орчим';
-
-    document.getElementById('stat-row').innerHTML = `
-      <div><b>${escapeHTML(route.distanceKm)} км</b><span>Алхах зай</span></div>
-      <div><b>${escapeHTML(route.elevationM)} м</b><span>Өгсөлт</span></div>
-      <div><b>${escapeHTML(route.timeHr)}</b><span>Хугацаа (цаг)</span></div>
-      <div><b>${escapeHTML(route.difficulty)}</b><span>Түвшин</span></div>
-      <div><b>${escapeHTML(route.season)}</b><span>Алхах улирал</span></div>
-    `;
-
-    // Populate 'Who needs this route' heuristically
-    const audiences = [];
-    try {
-      if (typeof route.distanceKm === 'number') {
-        if (route.distanceKm <= 5) audiences.push('Богино алхалт хайж байгаа хүмүүст');
-        if (route.distanceKm <= 8 && route.distanceKm > 6) audiences.push('Өдрийн алхалт сонирхдог хүмүүст');
-        if (route.distanceKm > 8) audiences.push('Ууланд алхаж дадсан хүмүүст');
-      }
-
-      if (route.difficulty) {
-        if (route.difficulty.includes('Хялбар') || route.difficulty.includes('Хөнгөн')) audiences.push('Алхаж эхэлж байгаа хүмүүст');
-        if (route.difficulty.includes('Дунд')) audiences.push('Ууланд алхах дуртай хүмүүст');
-        if (route.difficulty.includes('Хэцүү')) audiences.push('Ууланд алхаж дадсан хүмүүст');
-      }
-
-      if (route.timeHr) {
-        const nums = (route.timeHr.match(/\d+(?:\.\d+)?/g) || []).map(Number);
-        const max = nums.length ? Math.max(...nums) : 0;
-        if (max >= 6) audiences.push('Удаан алхах дуртай хүмүүст');
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    const audienceEl = document.getElementById('route-audience');
-    if (audiences.length === 0) {
-      audienceEl.innerHTML = '<li>Алхах дуртай хүмүүст</li>';
-    } else {
-      audienceEl.innerHTML = audiences.map(a => `<li>${a}</li>`).join('');
-    }
-
-    const mapsLink = document.getElementById('google-maps-link');
-    if (route.track && route.track.length > 0) {
-      const [lat, lng] = route.track[0];
-      mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-      mapsLink.textContent = ' Тэмдэглэсэн цэгийг харах ↗';
-      mapsLink.removeAttribute('aria-disabled');
-    } else {
-      mapsLink.removeAttribute('href');
-      mapsLink.textContent = 'Тэмдэглэсэн цэг нь одоохондоо алга';
-      mapsLink.setAttribute('aria-disabled', 'true');
-    }
-
-    let safetyText = '';
-    switch (route.difficulty) {
-      case 'Хялбар':
-        safetyText = 'Хөнгөн жим байсан ч явах өдрийнхөө цаг агаар, замын нөхцөлийг шалгаарай.';
-        break;
-      case 'Хөнгөн - Дунд':
-        safetyText = 'Өгсүүр хэсэгт өөрийн хэмнэлээр алхаж, хэрэгтэй үедээ амраарай.';
-        break;
-      case 'Дунд':
-        safetyText = 'Өгсүүр, хадтай хэсэгт яаралгүй алхаж, хэрэгтэй үедээ амраарай.';
-        break;
-      case 'Хэцүү':
-        safetyText = 'Явах замынхаа нөхцөлийг урьдчилан шалгаж, өөрийн бэлтгэлдээ тохируулаарай.';
-        break;
-      default:
-        safetyText = 'Явах өдрийнхөө цаг агаар, замын нөхцөлийг шалгаарай.';
-    }
-    document.getElementById('safety-text').textContent = safetyText;
-
-    if (window.L && route.track && route.track.length >= 2) {
-      const map = detailMap = L.map('map', { zoomControl: false }).setView(route.track[0], 13);
-      L.control.zoom({ zoomInTitle: 'Ойртуулах', zoomOutTitle: 'Холдуулах' }).addTo(map);
-      L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://opentopomap.org">OpenTopoMap</a>'
-      }).addTo(map);
-
-      const polyline = L.polyline(route.track, { color: '#235843', weight: 4 }).addTo(map);
-      map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
-    } else {
-      document.getElementById('map').innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-soft);font-family:var(--font-mono);font-size:0.85rem;">Энэ жимийг газрын зураг дээр харуулж чадсангүй.</div>';
-    }
-  }
-
-  window.addEventListener('routes:updated', renderRouteDetails);
-
-  // If routes data is already available use it immediately, otherwise wait for the event
-  if (Array.isArray(window.ROUTES) && window.ROUTES.length > 0) {
-    renderRouteDetails();
-  } else {
-    window.addEventListener('routes:ready', () => {
-      renderRouteDetails();
-    }, { once: true });
-    // As a fallback, try again after a short delay
-    setTimeout(() => {
-      if (!Array.isArray(window.ROUTES) || window.ROUTES.length === 0) renderRouteDetails();
-    }, 250);
-  }
-</script>
+<script src="route-content.js"></script>
+<script src="route-details.js?v=route-editor-2"></script>
 </body>
 </html>

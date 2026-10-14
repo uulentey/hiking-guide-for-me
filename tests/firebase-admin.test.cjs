@@ -8,11 +8,14 @@ const source = fs.readFileSync(path.join(__dirname, '../firebase-service.js'), '
 const news = { title: 'News', summary: 'Summary', body: 'Body', date: '2026-10-07', published: false };
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
-function setup({ configured = true } = {}) {
+function setup({ configured = true, storageAvailable = true, delayUploads = false } = {}) {
   const documents = new Map();
   const writes = [];
   const reads = [];
   const delayedRoles = new Map();
+  const uploaded = [];
+  const pendingUploads = [];
+  let uploadError = null;
   let nextId = 0;
   let authListener;
   const auth = {
@@ -55,13 +58,34 @@ function setup({ configured = true } = {}) {
   };
   const firestore = () => db;
   firestore.FieldValue = { serverTimestamp: () => 'server-time' };
-  const firebase = { apps: [{}], firestore, auth: () => auth };
-  const window = { firebase, WalkyContent: content, WALKY_FIREBASE_CONFIG: configured ? { apiKey: 'test', authDomain: 'test', projectId: 'test', appId: 'test' } : {} };
+  const storage = { ref(path) { return {
+    put(file, metadata) {
+      let rejectUpload;
+      return {
+        cancel() { rejectUpload?.({ code: 'storage/canceled' }); },
+        on(event, progress, reject, resolve) {
+          rejectUpload = reject;
+          const finish = () => {
+            if (uploadError) { reject(uploadError); return; }
+            uploaded.push({ path, metadata });
+            progress({ bytesTransferred: file.size, totalBytes: file.size });
+            resolve();
+          };
+          if (delayUploads) pendingUploads.push(finish);
+          else queueMicrotask(finish);
+        }
+      };
+    },
+    async getDownloadURL() { return `https://example.com/${path}`; }
+  }; } };
+  const firebase = { apps: [{}], firestore, auth: () => auth, ...(storageAvailable ? { storage: () => storage } : {}) };
+  const window = { firebase, crypto: require('node:crypto').webcrypto, WalkyContent: content, WALKY_FIREBASE_CONFIG: configured ? { apiKey: 'test', authDomain: 'test', projectId: 'test', appId: 'test', storageBucket: 'test.appspot.com' } : {} };
   vm.runInNewContext(source, { window, firebase, console });
   let access;
   window.WalkyStore.onAdminStateChanged(state => { access = state; });
   return {
-    store: window.WalkyStore, documents, writes, reads, delayedRoles,
+    store: window.WalkyStore, documents, writes, reads, delayedRoles, uploaded, pendingUploads,
+    failUpload(error) { uploadError = error; },
     get access() { return access; },
     login(uid, extra = {}) { auth.currentUser = uid ? { uid, ...extra } : null; authListener(auth.currentUser); }
   };
@@ -81,6 +105,35 @@ test('visitors, regular accounts and unconfigured clients cannot read drafts or 
   regular.documents.set('admins/regular', { enabled: false });
   await regular.store.refreshAdminAccess();
   assert.equal(regular.access.isAdmin, false);
+});
+
+test('route image uploads require admin access and return a unique image URL after success', async () => {
+  const session = setup();
+  const file = { type: 'image/jpeg', size: 1024 };
+  await assert.rejects(session.store.uploadRouteImage(file), { code: 'permission-denied' });
+  session.documents.set('admins/admin', { enabled: true });
+  session.login('admin'); await settle();
+  const progress = [];
+  const result = await session.store.uploadRouteImage(file, value => progress.push(value));
+  assert.match(result.path, /^route-images\/admin\/[\w-]+\.jpg$/);
+  assert.equal(result.url, `https://example.com/${result.path}`);
+  assert.deepEqual(progress, [100]);
+  assert.equal(session.uploaded[0].metadata.contentType, 'image/jpeg');
+  await assert.rejects(session.store.uploadRouteImage({ type: 'image/svg+xml', size: 10 }), { code: 'content/invalid' });
+  session.failUpload({ code: 'storage/unauthorized' });
+  await assert.rejects(session.store.uploadRouteImage(file), { code: 'storage/unauthorized' });
+});
+
+test('account changes cancel image uploads and missing storage does not unlock writes', async () => {
+  const session = setup({ delayUploads: true });
+  session.documents.set('admins/admin', { enabled: true }); session.login('admin'); await settle();
+  const pending = session.store.uploadRouteImage({ type: 'image/png', size: 1024 });
+  session.login('regular');
+  await assert.rejects(pending, { code: 'storage/canceled' });
+  assert.equal(session.uploaded.length, 0);
+  const missing = setup({ storageAvailable: false });
+  missing.documents.set('admins/admin', { enabled: true }); missing.login('admin'); await settle();
+  await assert.rejects(missing.store.uploadRouteImage({ type: 'image/png', size: 1024 }), { code: 'storage/not-configured' });
 });
 
 test('admin membership comes from the server; anonymous users cannot inherit admin rights', async () => {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Удирдлага — walky</title>
-  <link rel="stylesheet" href="style.css?v=admin-1">
+  <link rel="stylesheet" href="style.css?v=route-editor-2">
 </head>
 <body data-page="admin">
 <a class="skip-link" href="#main-content">Үндсэн хэсэг рүү очих</a>
@@ -49,7 +49,14 @@
         <label class="full-width">Жимийн нэр<input name="name" required maxlength="160" placeholder="Жишээ: Манзуширын жим"></label>
         <label>Байршил<input name="area" required maxlength="160" placeholder="Богд хан уул"></label>
         <label>Хүндрэлийн түвшин<select name="difficulty"><option>Хялбар</option><option>Хөнгөн - Дунд</option><option>Дунд</option><option>Хэцүү</option></select></label>
-        <label class="full-width">Нүүр зургийн хаяг<input name="image" required maxlength="2048" placeholder="https://… эсвэл zurag/…"><span class="field-help">HTTPS зургийн холбоос эсвэл сайтын zurag/ хавтас дахь зураг.</span></label>
+        <div class="full-width admin-image-section">
+          <label for="route-image-file">Нүүр зураг оруулах</label>
+          <input id="route-image-file" type="file" accept="image/jpeg,image/png,image/webp">
+          <p class="field-help">JPG, PNG эсвэл WebP · 5 МБ хүртэл. Хадгалах үед зураг байршуулна.</p>
+          <div class="admin-image-preview" id="route-image-preview" hidden><img id="route-image-preview-img" alt="Жимийн нүүр зургийн урьдчилсан харагдац"><button type="button" class="text-button" id="clear-image-file" hidden>Сонгосон зургийг болих</button></div>
+          <p id="image-upload-status" class="field-help" role="status"></p>
+          <label>Эсвэл зургийн хаяг<input name="image" required maxlength="2048" placeholder="https://… эсвэл zurag/…"><span class="field-help">Зураг сонгосон бол хаягийг автоматаар оруулна.</span></label>
+        </div>
         <label>Алхах зай (км)<input name="distanceKm" type="number" required min="0.1" max="1000" step="any" inputmode="decimal"></label>
         <label>Өгсөлт (м)<input name="elevationM" type="number" required min="0" max="10000" step="any" inputmode="decimal"></label>
         <label>Хугацаа (цаг)<input name="timeHr" required maxlength="40" placeholder="Жишээ: 1.5–2"></label>
@@ -57,6 +64,12 @@
         <label>Алхах улирал<input name="season" required maxlength="160" placeholder="Жилийн турш"></label>
         <label>Товч тэмдэглэл<input name="status" maxlength="160" placeholder="Жишээ: Гэр бүлээрээ явахад"></label>
         <label class="full-width">Жимийн тайлбар<textarea name="desc" rows="4" required maxlength="5000"></textarea></label>
+        <div class="full-width admin-form-section"><p class="eyebrow">АЛХАХААСАА ӨМНӨ</p></div>
+        <label class="full-width">Бэлтгэлийн хэсгийн гарчиг<input name="preparationTitle" maxlength="160" placeholder="Эдгээрийг аваарай"></label>
+        <label class="full-width">Бэлтгэх зүйлс<textarea name="preparation" rows="5" maxlength="4200" placeholder="Ундны ус&#10;Хөлд эвтэйхэн гутал"></textarea><span class="field-help">Мөр бүрт нэг зүйл, хамгийн ихдээ 20 мөр. Хоосон бол энэ хэсгийг харуулахгүй.</span></label>
+        <div class="full-width admin-form-section"><p class="eyebrow">ХЭНД ТОХИРОХ ВЭ?</p></div>
+        <label class="full-width">Тохирох хүмүүсийн хэсгийн гарчиг<input name="audienceTitle" maxlength="160" placeholder="Өөрийн бэлтгэлдээ тааруулаарай"></label>
+        <label class="full-width">Хэнд тохирох вэ?<textarea name="audience" rows="3" maxlength="4200" placeholder="Богино алхалт хайж байгаа хүмүүст&#10;Гэр бүлээрээ алхахад"></textarea><span class="field-help">Мөр бүрт нэг тайлбар, хамгийн ихдээ 20 мөр. Хоосон бол энэ хэсгийг харуулахгүй.</span></label>
         <label class="full-width">Газрын зургийн координатууд<textarea name="track" rows="4" placeholder="47.838254, 106.890664&#10;47.861016, 106.903578" spellcheck="false"></textarea><span class="field-help">Цэг бүрийг өргөрөг, уртраг гэж тусдаа мөрөнд бичнэ. Хоосон үлдээж болно; жим зурахын тулд дор хаяж 2 цэг хэрэгтэй.</span></label>
       </div>
       <div id="news-fields" class="admin-form-grid" hidden>
@@ -83,11 +96,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="content-model.js"></script>
-<script src="firebase-service.js"></script>
+<script src="content-model.js?v=route-editor-2"></script>
+<script src="route-content.js"></script>
+<script src="firebase-service.js?v=route-editor-2"></script>
 <script src="hikes-store.js"></script>
 <script src="main.js?v=admin-1"></script>
-<script src="admin.js"></script>
+<script src="admin.js?v=route-editor-2"></script>
 </body>
 </html>

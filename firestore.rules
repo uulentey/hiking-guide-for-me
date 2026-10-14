@@ -20,6 +20,10 @@ service cloud.firestore {
         && shortText(data.timeHr, 40) && shortText(data.season, 160)
         && data.status is string && data.status.size() <= 160
         && shortText(data.desc, 5000)
+        && data.get('preparationTitle', '') is string && data.get('preparationTitle', '').size() <= 160
+        && data.get('preparation', []) is list && data.get('preparation', []).size() <= 20
+        && data.get('audienceTitle', '') is string && data.get('audienceTitle', '').size() <= 160
+        && data.get('audience', []) is list && data.get('audience', []).size() <= 20
         && data.track is list && data.track.size() <= 2000 && data.track.size() != 1
         && data.published is bool
         && data.updatedAt == request.time && data.updatedBy == request.auth.uid;

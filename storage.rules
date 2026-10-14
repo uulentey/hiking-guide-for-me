@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.enabled == true;
+    }
+    match /route-images/{userId}/{imageId} {
+      // Route photographs are public website assets; only admins may upload.
+      allow get: if true;
+      allow create: if isAdmin() && request.auth.uid == userId
+        && request.resource.size > 0 && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && imageId.matches('[a-zA-Z0-9-]+[.](jpg|png|webp)');
+      allow delete: if isAdmin() && request.auth.uid == userId;
+    }
+  }
+}

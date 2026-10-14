@@ -50,6 +50,18 @@
     if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== result) invalid('Мэдээний огноог зөв оруулна уу.');
     return result;
   }
+  function textList(value, label) {
+    const entries = typeof value === 'string' ? value.split(/\r?\n/) : value;
+    if (!Array.isArray(entries) || entries.some(item => typeof item !== 'string')) invalid(`${label}: мөр бүрт нэг зүйл оруулна уу.`);
+    const items = entries.map(item => item.trim()).filter(Boolean);
+    if (items.length > 20 || items.some(item => item.length > 200)) invalid(`${label}: 200 хүртэл тэмдэгттэй, хамгийн ихдээ 20 мөр оруулна уу.`);
+    return items;
+  }
+  function imageFile(file) {
+    if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) invalid('JPG, PNG эсвэл WebP зураг сонгоно уу.');
+    if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 5 * 1024 * 1024) invalid('Зургийн хэмжээ 5 МБ-аас ихгүй байх ёстой.');
+    return file;
+  }
   function route(data) {
     const difficulty = text(data.difficulty, 'Түвшин', 40);
     if (!['Хялбар', 'Хөнгөн - Дунд', 'Дунд', 'Хэцүү'].includes(difficulty)) invalid('Хүндрэлийн түвшнээ сонгоно уу.');
@@ -66,6 +78,10 @@
       season: text(data.season, 'Алхах улирал', 160),
       status: text(data.status, 'Товч тэмдэглэл', 160, true),
       desc: text(data.desc, 'Тайлбар', 5000),
+      ...(Object.hasOwn(data, 'preparationTitle') ? { preparationTitle: text(data.preparationTitle, 'Бэлтгэлийн гарчиг', 160, true) } : {}),
+      ...(Object.hasOwn(data, 'preparation') ? { preparation: textList(data.preparation, 'Алхахаасаа өмнө') } : {}),
+      ...(Object.hasOwn(data, 'audienceTitle') ? { audienceTitle: text(data.audienceTitle, 'Тохирох хүмүүсийн гарчиг', 160, true) } : {}),
+      ...(Object.hasOwn(data, 'audience') ? { audience: textList(data.audience, 'Хэнд тохирох вэ?') } : {}),
       track: track(data.track),
       published: data.published
     };
@@ -80,7 +96,7 @@
       published: data.published
     };
   }
-  const api = { route, news, track };
+  const api = { route, news, track, imageFile };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.WalkyContent = api;
 })(typeof window !== 'undefined' ? window : globalThis);

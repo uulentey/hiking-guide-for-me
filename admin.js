@@ -14,11 +14,20 @@
   let busy = false;
   let loading = false;
   let loaded = false;
+  let pendingImage = null;
+  let uploadedImage = null;
+  let previewUrl = null;
+  let imageVersion = 0;
+  let validatingImage = false;
 
   function errorMessage(error) {
     if (error.code === 'content/invalid') return error.message;
     if (error.code === 'permission-denied') return 'Энэ үйлдлийг хийх эрхгүй байна. Админ эрх болон холболтоо шалгаад дахин оролдоорой.';
     if (error.code === 'not-found') return 'Энэ мэдээлэл устгагдсан байна. Жагсаалтаа дахин ачаалаарай.';
+    if (error.code === 'storage/not-configured' || error.code === 'storage/bucket-not-found') return 'Зураг байршуулах холболт тохируулагдаагүй байна. Сайтын хариуцагч Firebase Storage тохиргоог шалгана уу.';
+    if (error.code === 'storage/unauthorized') return 'Зураг байршуулах эрхгүй байна. Админ эрх болон Storage дүрмийг шалгана уу.';
+    if (error.code === 'storage/canceled') return 'Зураг байршуулах үйлдэл цуцлагдлаа.';
+    if (error.code === 'storage/retry-limit-exceeded') return 'Зургийг байршуулж чадсангүй. Интернэт холболтоо шалгаад дахин оролдоорой.';
     if (['unavailable', 'deadline-exceeded'].includes(error.code)) return 'Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгаад дахин оролдоорой.';
     return 'Үйлдлийг хийж чадсангүй. Дахин оролдоорой.';
   }
@@ -30,8 +39,65 @@
     $('#content-fields').disabled = busy;
     ['#editor-close', '#editor-cancel', '#save-content', '#delete-cancel', '#delete-confirm'].forEach(selector => { $(selector).disabled = busy; });
     $('#save-content').textContent = busy ? 'Хадгалж байна…' : 'Хадгалах';
+    $('#save-content').disabled = busy || validatingImage;
+    $('#clear-image-file').disabled = busy;
     $('#delete-confirm').textContent = busy ? 'Устгаж байна…' : 'Устгах';
   }
+  function resetImage(clearInput = true) {
+    imageVersion++;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    pendingImage = null; uploadedImage = null; previewUrl = null; validatingImage = false;
+    if (clearInput) $('#route-image-file').value = '';
+    form.elements.namedItem('image').required = true;
+    $('#clear-image-file').hidden = true;
+    $('#image-upload-status').textContent = '';
+  }
+  function showImagePreview(source) {
+    const allowed = source && (/^(https:\/\/|zurag\/)[^\s]+$/i.test(source) || source === previewUrl);
+    $('#route-image-preview').hidden = !allowed;
+    if (allowed) $('#route-image-preview-img').src = source;
+    else $('#route-image-preview-img').removeAttribute('src');
+  }
+  $('#route-image-preview-img').addEventListener('error', () => { $('#route-image-preview').hidden = true; });
+  $('#route-image-file').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    resetImage(false);
+    $('#form-error').hidden = true;
+    if (!file) { showImagePreview(form.elements.namedItem('image').value); return; }
+    const version = imageVersion;
+    try {
+      window.WalkyContent.imageFile(file);
+      if (!store.uploadsConfigured) throw Object.assign(new Error('Storage unavailable'), { code: 'storage/not-configured' });
+      validatingImage = true; actions();
+      previewUrl = URL.createObjectURL(file);
+      const url = previewUrl;
+      await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = resolve;
+        image.onerror = () => reject(Object.assign(new Error('Энэ зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.'), { code: 'content/invalid' }));
+        image.src = url;
+      });
+      if (version !== imageVersion) return;
+      pendingImage = file;
+      form.elements.namedItem('image').required = false;
+      $('#clear-image-file').hidden = false;
+      $('#image-upload-status').textContent = `${file.name} · Хадгалах үед байршуулна.`;
+      showImagePreview(url);
+    } catch (error) {
+      if (version !== imageVersion) return;
+      resetImage();
+      showImagePreview(form.elements.namedItem('image').value);
+      $('#form-error').textContent = errorMessage(error);
+      $('#form-error').hidden = false;
+    } finally {
+      if (version === imageVersion || !validatingImage) { validatingImage = false; actions(); }
+    }
+  });
+  $('#clear-image-file').addEventListener('click', () => { resetImage(); showImagePreview(form.elements.namedItem('image').value); actions(); });
+  form.elements.namedItem('image').addEventListener('input', () => {
+    resetImage(); showImagePreview(form.elements.namedItem('image').value); actions();
+  });
+  editor.addEventListener('close', () => { resetImage(); showImagePreview(''); });
   function showError(error) {
     $('#admin-error-text').textContent = errorMessage(error);
     $('#admin-error').hidden = false;
@@ -91,6 +157,7 @@
     }
   }
   function openEditor(record) {
+    resetImage();
     editingId = record?.id || null;
     form.reset();
     $('#form-error').hidden = true;
@@ -101,26 +168,46 @@
     document.querySelectorAll('#news-fields input, #news-fields textarea').forEach(input => { input.disabled = isRoute; });
     $('#editor-kind').textContent = isRoute ? 'ЖИМ' : 'ӨДӨР ТУТМЫН МЭДЭЭ';
     $('#editor-title').textContent = `${isRoute ? 'Жим' : 'Мэдээ'} ${record ? 'засах' : 'нэмэх'}`;
-    const values = record || (isRoute ? { image: 'zurag/bogdGorhi.jpg', difficulty: 'Хялбар', season: 'Жилийн турш', elevationM: 0 } : { date: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Ulaanbaatar' }).format(new Date()) });
+    const original = record || (isRoute ? { image: 'zurag/bogdGorhi.jpg', difficulty: 'Хялбар', season: 'Жилийн турш', elevationM: 0 } : { date: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Ulaanbaatar' }).format(new Date()) });
+    const values = isRoute ? { ...original, ...window.WalkyRouteContent.guidance(original) } : original;
     Object.entries(values).forEach(([name, value]) => {
       const input = form.elements.namedItem(name);
       if (!input) return;
       if (input.type === 'checkbox') input.checked = value === true;
       else if (name === 'track') input.value = Array.isArray(value) ? value.map(point => Array.isArray(point) ? point.join(', ') : `${point.latitude}, ${point.longitude}`).join('\n') : '';
+      else if (name === 'preparation' || name === 'audience') input.value = value.join('\n');
       else input.value = value ?? '';
     });
+    showImagePreview(isRoute ? values.image : '');
     editor.showModal();
     form.elements.namedItem(isRoute ? 'name' : 'title').focus();
   }
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || validatingImage) return;
     const session = authVersion;
     const data = Object.fromEntries(new FormData(form));
     data.published = form.elements.namedItem('published').checked;
     $('#form-error').hidden = true;
     busy = true; actions();
     try {
+      if (collection === 'routes') {
+        // Validate the complete route before uploading a selected photograph.
+        window.WalkyContent.route({ ...data, image: pendingImage ? 'zurag/bogdGorhi.jpg' : data.image });
+        if (pendingImage) {
+          if (!uploadedImage) {
+            const upload = await store.uploadRouteImage(pendingImage, progress => {
+              if (session === authVersion) $('#image-upload-status').textContent = `Зургийг байршуулж байна… ${progress}%`;
+            });
+            if (session !== authVersion) return;
+            uploadedImage = upload;
+          }
+          if (session !== authVersion) return;
+          data.image = uploadedImage.url;
+          form.elements.namedItem('image').value = data.image;
+          $('#image-upload-status').textContent = 'Зургийг байршууллаа. Жимийн мэдээллийг хадгалж байна…';
+        }
+      }
       await store.saveContent(collection, editingId, data);
       if (session !== authVersion) return;
       editor.close();
@@ -205,6 +292,7 @@
     $('#admin-sign-in').hidden = !state.ready || Boolean(state.user && !state.user.isAnonymous) || !store.configured;
     $('#access-retry').hidden = !state.ready || !state.user;
     if (!allowed) {
+      resetImage();
       authVersion++;
       authorizedUid = null;
       loaded = false; busy = false; loading = false;
